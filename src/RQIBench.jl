@@ -511,18 +511,23 @@ end
 """
     build_starts(strategy, A, B = I; seed, nstarts, power_iters, shift, search_shift) -> (starts, info)
 
-Initial (v0, σ0) pairs for the pencil `(A, B)`. `grid` spreads `nstarts`
-shifts evenly across the Gershgorin real-axis range of the standard-form
-problem `Â = B\\A` (requires nonsingular `B`); `largest` builds `v0` from
-`power_iters` shift-invert power iterations on `(A - sB)\\B`, whose
-dominant eigenpair is the pencil eigenpair nearest `s`, and starts at the
-generalized `σ0 = RQ(v0)`. `s` defaults to the right Gershgorin bound
-(of `A`, or of `Â` when `B` is nonsingular); a singular `B` requires
-`search_shift`. An explicit `shift` always forces a single start. Returns
-the `(v0, σ0)` pairs plus a `Dict{String,Any}` recording the resolved search
-parameters (`search_shift` for `largest`, `(lo, hi)` for `grid`). Takes
-only concrete values — the CLI Dict is unpacked once at the call site so
-the (timed) search phase is type-stable.
+Initial `(v0, σ0)` pairs for the pencil `(A, B)`.
+
+- `rq`: a single start at `σ0 = RQ(v0)` (generalized Rayleigh quotient
+  when `B ≠ I`). An explicit `shift` overrides `σ0` and forces a single
+  start for any strategy.
+- `grid`: `nstarts` shifts spread evenly across the Gershgorin real-axis
+  range of the standard-form problem `Â = B\\A` (requires nonsingular `B`).
+- `largest`: `v0` built from `power_iters` shift-invert power iterations
+  on `(A - sB)\\B`, whose dominant eigenpair is the pencil eigenpair
+  nearest `s`; `σ0 = RQ(v0)`. `s` defaults to the right Gershgorin bound
+  (of `A`, or of `Â` when `B` is nonsingular); a singular `B` requires
+  `search_shift`.
+
+Returns the `(v0, σ0)` pairs plus a `Dict{String,Any}` recording the
+resolved search parameters (`search_shift` for `largest`, `(lo, hi)` for
+`grid`). Takes only concrete values — the CLI Dict is unpacked once at the
+call site so the (timed) search phase is type-stable.
 """
 function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
                       seed::Integer, nstarts::Integer, power_iters::Integer,
