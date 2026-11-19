@@ -20,8 +20,7 @@ using Printf
 using Random
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
-       RQICounters, RQIResult, SpectrumResult, run_rqi, run_rqi_spectrum,
-       run_oracle, load_matrix,
+       RQICounters, RQIResult, run_rqi, run_oracle, load_matrix,
        method_tag, nearest_oracle, eigenvector_error, gershgorin_bounds,
        sanity_check
 
@@ -84,18 +83,6 @@ struct RQIResult{T,R<:Real}
     converged::Bool
     fail_reason::Union{String,Nothing}
     counters::RQICounters{T,R}
-end
-
-"""Result of a full-spectrum computation: the accepted eigenpairs plus one
-`RQIResult` per attempt (accepted or not) and aggregated totals."""
-struct SpectrumResult{T,R<:Real}
-    method::String
-    eigenvalues::Vector{T}
-    eigenvectors::Vector{Vector{T}}
-    attempts::Vector{RQIResult{T,R}}
-    accepted::Vector{Bool}
-    totals::RQICounters{T,R}
-    n_target::Int                 # number of eigenvalues sought (size(A,1))
 end
 
 # ---------------------------------------------------------------------------
@@ -267,52 +254,31 @@ end
 # Outer iteration (shared by every method)
 # ---------------------------------------------------------------------------
 
-"""Twice-repeated classical Gram-Schmidt orthogonalization of `v` against `V`."""
-function _deflate!(v, V)
-    for _ in 1:2, u in V
-        v .-= u .* dot(u, v)
-    end
-    return v
-end
-
 """
     run_rqi(method, A; v0, σ0, tol, maxiter, inner_reltol, inner_abstol,
-            inner_maxiter, gmres_restart, deflate) -> RQIResult
+            inner_maxiter, gmres_restart) -> RQIResult
 
 Run one eigenpair iteration: solves for a single eigenpair and stops when
 `||Av - σv|| ≤ tol·||A||_∞` (or `maxiter` is hit). For [`FixedShiftLU`](@ref)
 the solve shift is frozen at `σ0` while `σ` still tracks the Rayleigh
 quotient for reporting. Generic over the element type `T` of `A`.
-
-`deflate` may be a vector of already-converged eigenvectors; the iterate is
-then reorthogonalized against them after every solve. For symmetric `A` this
-keeps the iteration in the orthogonal complement of the found eigenvectors.
-For nonsymmetric `A` it is only heuristic (right eigenvectors are not
-mutually orthogonal), and re-converging to a found eigenpair is possible.
 """
 function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
                  v0::AbstractVector, σ0::Number,
                  tol::Real = 1e-10, maxiter::Integer = 50,
                  inner_reltol::Real = 1e-10, inner_abstol::Real = 0,
-                 inner_maxiter::Integer = 0, gmres_restart::Integer = 0,
-                 deflate::Union{Nothing,Vector{Vector{T}}} = nothing,
-                 state::Union{Nothing,SolverState} = nothing) where {T<:Number}
+                 inner_maxiter::Integer = 0, gmres_restart::Integer = 0) where {T<:Number}
     A = Matrix{T}(A)
     n = size(A, 1)
     normA = opnorm(A, Inf)
     v = normalize(Vector{T}(v0))
-    if deflate !== nothing
-        _deflate!(v, deflate)
-        v ./= norm(v)
-    end
     σ = T(σ0)
     rt = real(T)
-    st = state === nothing ?
-        init_state(method, A, σ, v, normA;
-                   inner_reltol = rt(inner_reltol),
-                   inner_abstol = rt(inner_abstol),
-                   inner_maxiter = Int(inner_maxiter),
-                   gmres_restart = Int(gmres_restart)) : state
+    st = init_state(method, A, σ, v, normA;
+                    inner_reltol = rt(inner_reltol),
+                    inner_abstol = rt(inner_abstol),
+                    inner_maxiter = Int(inner_maxiter),
+                    gmres_restart = Int(gmres_restart))
     cnt = st.counters
 
     converged = false
@@ -334,15 +300,6 @@ function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
             break
         end
         v = normalize(w ./ nw)
-        if deflate !== nothing
-            _deflate!(v, deflate)
-            nv = norm(v)
-            if !(isfinite(nv) && nv > 0)
-                fail_reason = "iterate collapsed onto deflated subspace"
-                break
-            end
-            v ./= nv
-        end
         mul!(Av, A, v)
         σ = dot(v, Av)
         res = norm(Av .- σ .* v)
@@ -355,99 +312,6 @@ function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
     end
 
     return RQIResult(method_tag(method), σ, v, res, converged, fail_reason, cnt)
-end
-
-"""
-    run_rqi_spectrum(method, A; tol, maxiter, ..., seed, σ0, match_tol,
-                     max_attempts) -> SpectrumResult
-
-Compute all `n` eigenpairs of `A` by repeated deflated [`run_rqi`](@ref):
-each attempt starts from a deterministic random `v0` orthogonalized against
-the eigenvectors already found, and the iteration itself is reorthogonalized
-(see the `deflate` keyword). An attempt is *accepted* if it converged and its
-eigenvalue is new (no found eigenvalue within `match_tol`). Attempts continue
-until `n` eigenvalues are found or `max_attempts` (default `3n`) is hit.
-
-Aggregate cost is the headline metric: `FixedShiftLU` reuses a SINGLE LU
-factorization for the whole spectrum (one `init_state`, shared across all
-attempts), while `RefactorLU` pays `~k` factorizations per eigenpair (O(n⁴)
-overall). For `FixedShiftLU`, `σ0` (default: the Rayleigh quotient of the
-first attempt's `v0`) fixes the solve shift, so eigenvalues are collected
-roughly in order of distance from it; the other methods get a fresh
-`σ0 = RQ(v0)` per attempt.
-"""
-function run_rqi_spectrum(method::RQIMethod, A::AbstractMatrix{T};
-                          tol::Real = 1e-10, maxiter::Integer = 50,
-                          inner_reltol::Real = 1e-10, inner_abstol::Real = 0,
-                          inner_maxiter::Integer = 0, gmres_restart::Integer = 0,
-                          σ0::Union{Nothing,Number} = nothing, seed::Integer = 1234,
-                          match_tol::Union{Nothing,Real} = nothing,
-                          max_attempts::Integer = 0) where {T<:Number}
-    A = Matrix{T}(A)
-    n = size(A, 1)
-    normA = opnorm(A, Inf)
-    rt = real(T)
-    mtol = something(match_tol, max(10 * tol, 10 * sqrt(eps(rt))) * normA)
-    max_attempts <= 0 && (max_attempts = 3n)
-
-    V = Vector{T}[]
-    λs = T[]
-    attempts = RQIResult{T,rt}[]
-    accepted = Bool[]
-    totals = RQICounters{T}()
-
-    # FixedShiftLU: one factorization for the entire spectrum. The state is
-    # built once and shared across attempts; the per-attempt counters are
-    # reset so each attempt reports its own numbers while the single init
-    # factorization is charged to `totals`.
-    shared_state = nothing
-    if method isa FixedShiftLU
-        v_init = normalize(rand(MersenneTwister(seed + 1000), T, n))
-        σinit = σ0 === nothing ? T(dot(v_init, A * v_init)) : T(σ0)
-        shared_state = init_state(method, A, σinit, v_init, normA;
-                                  inner_reltol = rt(inner_reltol),
-                                  inner_abstol = rt(inner_abstol),
-                                  inner_maxiter = Int(inner_maxiter),
-                                  gmres_restart = Int(gmres_restart))
-        totals.n_factorizations += 1
-    end
-
-    for att in 1:max_attempts
-        length(λs) >= n && break
-        v0 = normalize(rand(MersenneTwister(seed + 1000att), T, n))
-        _deflate!(v0, V)
-        nv0 = norm(v0)
-        if !(isfinite(nv0) && nv0 > sqrt(eps(rt)))
-            break   # found vectors already span the space
-        end
-        v0 ./= nv0
-        σstart = σ0 === nothing ? T(dot(v0, A * v0)) : T(σ0)
-        if shared_state !== nothing
-            shared_state.counters = RQICounters{T}()
-        end
-        r = run_rqi(method, A; v0 = v0, σ0 = σstart, tol = tol,
-                    maxiter = maxiter, inner_reltol = inner_reltol,
-                    inner_abstol = inner_abstol, inner_maxiter = inner_maxiter,
-                    gmres_restart = gmres_restart, deflate = V,
-                    state = shared_state)
-        push!(attempts, r)
-        c = r.counters
-        totals.outer_iters += c.outer_iters
-        totals.n_shifts += c.n_shifts
-        totals.n_factorizations += c.n_factorizations
-        totals.n_perturbations += c.n_perturbations
-        totals.gmres_iters_total += c.gmres_iters_total
-        totals.gmres_stalled += c.gmres_stalled
-        isnew = r.converged && all(λ -> abs(λ - r.eigenvalue) > mtol, λs)
-        push!(accepted, isnew)
-        if isnew
-            push!(λs, r.eigenvalue)
-            push!(V, r.eigenvector)
-        end
-    end
-
-    return SpectrumResult(method_tag(method), λs, V, attempts, accepted,
-                          totals, n)
 end
 
 # ---------------------------------------------------------------------------
