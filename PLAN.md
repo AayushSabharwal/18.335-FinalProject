@@ -115,6 +115,16 @@ Near-singular `(A - σB)` is the norm in RQI. If `lu` reports a zero pivot
 - CLI via `ArgParse.jl`: `--matrices DIR` (or file
   list), `--out FILE`, `--tol`, `--maxiter`, `--inner-reltol`,
   `--inner-maxiter`, `--taus 0,0.01,0.1,1`, `--samples 5`, `--seed 1234`.
+- `meta.args` serializes the parsed CLI dict verbatim, so every run is
+  self-describing. `entry.search` records the *resolved* search
+  configuration (`strategy`, plus the auto-derived `search_shift` for
+  `largest` or `lo`/`hi` Gershgorin bounds for `grid`) — the actual
+  values used, not just what was passed.
+- `--from-results FILE` replays a previous result: options left at their
+  CLI defaults are filled from that file's `meta.args` (including
+  `--matrices`); explicitly passed options always win. A reviewer can
+  replicate a published run with
+  `julia --project=. bench/run_benchmark.jl --from-results old.json --out new.json`.
 - Initial guess: `v0 = normalize(rand(MersenneTwister(seed), n))`
   (deterministic, recorded); `σ0 = v0' A v0` unless `--shift` given.
 - Timing via `BenchmarkTools.jl` (`evals=1`, `samples=N` per trial) in

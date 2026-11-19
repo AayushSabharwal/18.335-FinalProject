@@ -509,7 +509,7 @@ function gershgorin_bounds(A::AbstractMatrix)
 end
 
 """
-    build_starts(strategy, A, B = I; seed, nstarts, power_iters, shift, search_shift) -> Vector{Tuple{Vector{T}, T}}
+    build_starts(strategy, A, B = I; seed, nstarts, power_iters, shift, search_shift) -> (starts, info)
 
 Initial (v0, σ0) pairs for the pencil `(A, B)`. `grid` spreads `nstarts`
 shifts evenly across the Gershgorin real-axis range of the standard-form
@@ -518,7 +518,9 @@ problem `Â = B\\A` (requires nonsingular `B`); `largest` builds `v0` from
 dominant eigenpair is the pencil eigenpair nearest `s`, and starts at the
 generalized `σ0 = RQ(v0)`. `s` defaults to the right Gershgorin bound
 (of `A`, or of `Â` when `B` is nonsingular); a singular `B` requires
-`search_shift`. An explicit `shift` always forces a single start. Takes
+`search_shift`. An explicit `shift` always forces a single start. Returns
+the `(v0, σ0)` pairs plus a `NamedTuple` recording the resolved search
+parameters (`search_shift` for `largest`, `(lo, hi)` for `grid`). Takes
 only concrete values — the CLI Dict is unpacked once at the call site so
 the (timed) search phase is type-stable.
 """
@@ -537,7 +539,7 @@ function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
         else
             dot(v0, A * v0)
         end
-        return [(v0, T(σ0))]
+        return [(v0, T(σ0))], (;)
     end
     if strategy == "largest"
         # Shift-invert power iteration on C = (A - sB)\B: its dominant
@@ -596,7 +598,7 @@ function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
         # σ0 = generalized Rayleigh quotient of the final vector
         mul!(w, A, v0)
         mul!(Bv, B, v0)
-        return [(v0, T(dot(v0, w) / dot(v0, Bv)))]
+        return [(v0, T(dot(v0, w) / dot(v0, Bv)))], (; search_shift = s)
     end
     strategy != "grid" && error("unknown start strategy: $strategy")
     # Shift placement for `grid` acts on the standard-form problem
@@ -614,7 +616,7 @@ function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
     K < 1 && error("nstarts must be ≥ 1")
     σs = K == 1 ? [(lo + hi) / 2] : collect(range(lo, hi, K))
     return [(normalize!(rand(Xoshiro(seed + 1000j), T, n)), T(σ))
-            for (j, σ) in enumerate(σs)]
+            for (j, σ) in enumerate(σs)], (; lo, hi)
 end
 
 # ---------------------------------------------------------------------------

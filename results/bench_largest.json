@@ -13,7 +13,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 15834.0
+                    "total_runtime_ns_median": 15625.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.04,
@@ -26,7 +26,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 16999.0
+                    "total_runtime_ns_median": 16625.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.04,
@@ -39,7 +39,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 17333.0
+                    "total_runtime_ns_median": 16791.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.04,
@@ -52,7 +52,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 16542.0
+                    "total_runtime_ns_median": 16291.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.04,
@@ -65,7 +65,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 16917.0
+                    "total_runtime_ns_median": 16125.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.04,
@@ -78,7 +78,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 16375.0
+                    "total_runtime_ns_median": 16249.0
                 },
                 "rqi_lu": {
                     "coverage": 0.04,
@@ -91,7 +91,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 15791.0
+                    "total_runtime_ns_median": 15375.0
                 }
             },
             "eltype": "Float64",
@@ -812,19 +812,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 278528,
-                "runtime_ns_median": 43333.0,
-                "runtime_ns_min": 42333.0,
+                "runtime_ns_median": 46125.0,
+                "runtime_ns_min": 44708.0,
                 "runtime_ns_samples": [
-                    70709.0,
-                    46667.0,
-                    43333.0,
-                    42625.0,
-                    42333.0
+                    73208.0,
+                    47000.0,
+                    46125.0,
+                    44708.0,
+                    44708.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 15834.0,
+                    "end_to_end_runtime_ns_median": 15625.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -833,29 +833,29 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 17952,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1084.0,
-                    "init_runtime_ns_min": 875.0,
+                    "init_runtime_ns_median": 833.0,
+                    "init_runtime_ns_min": 541.0,
                     "init_runtime_ns_samples": [
-                        6292.0,
-                        1291.0,
-                        875.0,
-                        1084.0,
-                        1042.0
+                        5208.0,
+                        1417.0,
+                        833.0,
+                        750.0,
+                        541.0
                     ],
                     "iterate_alloc_count": 14,
                     "iterate_bytes_allocated": 7232,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3042.0,
-                    "iterate_runtime_ns_min": 2584.0,
+                    "iterate_runtime_ns_median": 3292.0,
+                    "iterate_runtime_ns_min": 2667.0,
                     "iterate_runtime_ns_samples": [
-                        15000.0,
-                        3917.0,
-                        3042.0,
-                        2917.0,
-                        2584.0
+                        15667.0,
+                        4041.0,
+                        3292.0,
+                        2709.0,
+                        2667.0
                     ],
                     "label": "fixed_shift_lu",
-                    "maxrss_delta_bytes": 262144,
+                    "maxrss_delta_bytes": 0,
                     "method": "fixed_shift_lu",
                     "n_starts": 1,
                     "params": {
@@ -923,7 +923,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -934,7 +934,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 15791.0,
+                    "end_to_end_runtime_ns_median": 15375.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -943,29 +943,29 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 17952,
                     "init_flops": null,
-                    "init_runtime_ns_median": 833.0,
+                    "init_runtime_ns_median": 792.0,
                     "init_runtime_ns_min": 542.0,
                     "init_runtime_ns_samples": [
-                        5584.0,
-                        959.0,
-                        833.0,
+                        6625.0,
+                        1250.0,
                         542.0,
-                        625.0
+                        792.0,
+                        709.0
                     ],
                     "iterate_alloc_count": 16,
                     "iterate_bytes_allocated": 7488,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3250.0,
-                    "iterate_runtime_ns_min": 2833.0,
+                    "iterate_runtime_ns_median": 3083.0,
+                    "iterate_runtime_ns_min": 2708.0,
                     "iterate_runtime_ns_samples": [
-                        14875.0,
-                        4250.0,
-                        3250.0,
-                        2833.0,
-                        2916.0
+                        15541.0,
+                        4125.0,
+                        3083.0,
+                        2750.0,
+                        2708.0
                     ],
                     "label": "rqi_lu",
-                    "maxrss_delta_bytes": 114688,
+                    "maxrss_delta_bytes": 0,
                     "method": "rqi_lu",
                     "n_starts": 1,
                     "params": {
@@ -1033,7 +1033,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -1044,7 +1044,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 16999.0,
+                    "end_to_end_runtime_ns_median": 16625.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1053,29 +1053,29 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3291.0,
-                    "init_runtime_ns_min": 2791.0,
+                    "init_runtime_ns_median": 2875.0,
+                    "init_runtime_ns_min": 2667.0,
                     "init_runtime_ns_samples": [
-                        14750.0,
-                        4083.0,
-                        3291.0,
-                        2791.0,
-                        3042.0
+                        15458.0,
+                        3875.0,
+                        2875.0,
+                        2875.0,
+                        2667.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2000.0,
-                    "iterate_runtime_ns_min": 1708.0,
+                    "iterate_runtime_ns_median": 2250.0,
+                    "iterate_runtime_ns_min": 1666.0,
                     "iterate_runtime_ns_samples": [
-                        10208.0,
-                        1959.0,
-                        2000.0,
-                        1708.0,
-                        2041.0
+                        9791.0,
+                        1791.0,
+                        2500.0,
+                        1666.0,
+                        2250.0
                     ],
                     "label": "rqi_gmres_input_prec",
-                    "maxrss_delta_bytes": 98304,
+                    "maxrss_delta_bytes": 0,
                     "method": "rqi_gmres_input_prec",
                     "n_starts": 1,
                     "params": {
@@ -1145,7 +1145,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1156,7 +1156,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 17333.0,
+                    "end_to_end_runtime_ns_median": 16791.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1165,29 +1165,29 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3458.0,
-                    "init_runtime_ns_min": 3083.0,
+                    "init_runtime_ns_median": 3083.0,
+                    "init_runtime_ns_min": 2625.0,
                     "init_runtime_ns_samples": [
-                        14583.0,
-                        4000.0,
-                        3458.0,
+                        15250.0,
+                        4042.0,
                         3083.0,
-                        3375.0
+                        2750.0,
+                        2625.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2167.0,
+                    "iterate_runtime_ns_median": 2208.0,
                     "iterate_runtime_ns_min": 1625.0,
                     "iterate_runtime_ns_samples": [
-                        8791.0,
-                        1875.0,
-                        2250.0,
+                        9708.0,
+                        1958.0,
+                        2208.0,
                         1625.0,
-                        2167.0
+                        2375.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
-                    "maxrss_delta_bytes": 98304,
+                    "maxrss_delta_bytes": 0,
                     "method": "rqi_gmres_prev_prec",
                     "n_starts": 1,
                     "params": {
@@ -1258,7 +1258,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1269,7 +1269,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 16542.0,
+                    "end_to_end_runtime_ns_median": 16291.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1278,26 +1278,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2792.0,
-                    "init_runtime_ns_min": 2709.0,
+                    "init_runtime_ns_median": 2791.0,
+                    "init_runtime_ns_min": 2583.0,
                     "init_runtime_ns_samples": [
-                        11166.0,
-                        3042.0,
-                        2709.0,
-                        2792.0,
-                        2750.0
+                        10916.0,
+                        2791.0,
+                        2833.0,
+                        2708.0,
+                        2583.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2042.0,
-                    "iterate_runtime_ns_min": 1625.0,
+                    "iterate_runtime_ns_median": 2000.0,
+                    "iterate_runtime_ns_min": 1875.0,
                     "iterate_runtime_ns_samples": [
-                        5833.0,
-                        2292.0,
-                        1625.0,
-                        2042.0,
-                        1708.0
+                        8500.0,
+                        1875.0,
+                        2000.0,
+                        1875.0,
+                        2125.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
                     "maxrss_delta_bytes": 0,
@@ -1371,7 +1371,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1382,7 +1382,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 16917.0,
+                    "end_to_end_runtime_ns_median": 16125.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1391,26 +1391,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3334.0,
-                    "init_runtime_ns_min": 2584.0,
+                    "init_runtime_ns_median": 2625.0,
+                    "init_runtime_ns_min": 2541.0,
                     "init_runtime_ns_samples": [
-                        11459.0,
-                        3500.0,
-                        3334.0,
-                        2584.0,
-                        2667.0
+                        10292.0,
+                        3333.0,
+                        2583.0,
+                        2541.0,
+                        2625.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1875.0,
-                    "iterate_runtime_ns_min": 1625.0,
+                    "iterate_runtime_ns_median": 2000.0,
+                    "iterate_runtime_ns_min": 1667.0,
                     "iterate_runtime_ns_samples": [
-                        9625.0,
-                        2084.0,
+                        9500.0,
+                        2000.0,
                         1708.0,
-                        1625.0,
-                        1875.0
+                        1667.0,
+                        2000.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -1484,7 +1484,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1495,7 +1495,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 16375.0,
+                    "end_to_end_runtime_ns_median": 16249.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1504,26 +1504,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2875.0,
-                    "init_runtime_ns_min": 2500.0,
+                    "init_runtime_ns_median": 2916.0,
+                    "init_runtime_ns_min": 2542.0,
                     "init_runtime_ns_samples": [
-                        11375.0,
-                        3375.0,
-                        2875.0,
-                        2792.0,
-                        2500.0
+                        10125.0,
+                        3291.0,
+                        2542.0,
+                        2667.0,
+                        2916.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1792.0,
-                    "iterate_runtime_ns_min": 1708.0,
+                    "iterate_runtime_ns_median": 1833.0,
+                    "iterate_runtime_ns_min": 1625.0,
                     "iterate_runtime_ns_samples": [
-                        7667.0,
-                        2125.0,
-                        1708.0,
-                        1750.0,
-                        1792.0
+                        6500.0,
+                        1833.0,
+                        1792.0,
+                        1625.0,
+                        1875.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -1597,7 +1597,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 11708.0,
+                    "starts_runtime_ns_median": 11500.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1608,18 +1608,22 @@
                     }
                 }
             ],
+            "search": {
+                "search_shift": 37.39729617351118,
+                "strategy": "largest"
+            },
             "starts_benchmark": {
-                "alloc_count": 24,
-                "bytes_allocated": 7008,
+                "alloc_count": 25,
+                "bytes_allocated": 7040,
                 "flops": null,
-                "runtime_ns_median": 11708.0,
+                "runtime_ns_median": 11500.0,
                 "runtime_ns_min": 11250.0,
                 "runtime_ns_samples": [
-                    28833.0,
-                    12583.0,
-                    11708.0,
-                    11250.0,
-                    11333.0
+                    33542.0,
+                    12750.0,
+                    11500.0,
+                    11375.0,
+                    11250.0
                 ]
             },
             "symmetric": false
@@ -1637,7 +1641,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 5041.0
+                    "total_runtime_ns_median": 4833.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.08333333333333333,
@@ -1650,7 +1654,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 5459.0
+                    "total_runtime_ns_median": 5500.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.08333333333333333,
@@ -1663,7 +1667,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 5625.0
+                    "total_runtime_ns_median": 5500.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.08333333333333333,
@@ -1676,7 +1680,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 5376.0
+                    "total_runtime_ns_median": 5251.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.08333333333333333,
@@ -1702,7 +1706,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 5584.0
+                    "total_runtime_ns_median": 5666.0
                 },
                 "rqi_lu": {
                     "coverage": 0.08333333333333333,
@@ -1715,7 +1719,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 4959.0
+                    "total_runtime_ns_median": 4833.0
                 }
             },
             "eltype": "Float64",
@@ -1916,19 +1920,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 0,
-                "runtime_ns_median": 6792.0,
-                "runtime_ns_min": 6375.0,
+                "runtime_ns_median": 7791.0,
+                "runtime_ns_min": 6291.0,
                 "runtime_ns_samples": [
-                    24958.0,
-                    8417.0,
-                    6625.0,
-                    6792.0,
-                    6375.0
+                    30917.0,
+                    10583.0,
+                    7791.0,
+                    6875.0,
+                    6291.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 5041.0,
+                    "end_to_end_runtime_ns_median": 4833.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1937,26 +1941,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 5568,
                     "init_flops": null,
-                    "init_runtime_ns_median": 583.0,
-                    "init_runtime_ns_min": 291.0,
+                    "init_runtime_ns_median": 542.0,
+                    "init_runtime_ns_min": 292.0,
                     "init_runtime_ns_samples": [
-                        7459.0,
-                        375.0,
-                        583.0,
-                        291.0,
-                        1375.0
+                        4666.0,
+                        833.0,
+                        541.0,
+                        542.0,
+                        292.0
                     ],
                     "iterate_alloc_count": 13,
                     "iterate_bytes_allocated": 3136,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1166.0,
-                    "iterate_runtime_ns_min": 917.0,
+                    "iterate_runtime_ns_median": 1041.0,
+                    "iterate_runtime_ns_min": 959.0,
                     "iterate_runtime_ns_samples": [
-                        9792.0,
-                        1583.0,
-                        1166.0,
+                        7666.0,
+                        1500.0,
+                        1041.0,
                         1000.0,
-                        917.0
+                        959.0
                     ],
                     "label": "fixed_shift_lu",
                     "maxrss_delta_bytes": 0,
@@ -2014,7 +2018,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -2025,7 +2029,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 4959.0,
+                    "end_to_end_runtime_ns_median": 4833.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2034,26 +2038,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 5568,
                     "init_flops": null,
-                    "init_runtime_ns_median": 500.0,
-                    "init_runtime_ns_min": 250.0,
+                    "init_runtime_ns_median": 417.0,
+                    "init_runtime_ns_min": 291.0,
                     "init_runtime_ns_samples": [
-                        4042.0,
-                        500.0,
-                        583.0,
-                        333.0,
-                        250.0
+                        3541.0,
+                        417.0,
+                        417.0,
+                        291.0,
+                        458.0
                     ],
                     "iterate_alloc_count": 15,
                     "iterate_bytes_allocated": 3296,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1167.0,
-                    "iterate_runtime_ns_min": 1000.0,
+                    "iterate_runtime_ns_median": 1166.0,
+                    "iterate_runtime_ns_min": 958.0,
                     "iterate_runtime_ns_samples": [
-                        8250.0,
-                        1500.0,
-                        1167.0,
-                        1042.0,
-                        1000.0
+                        9666.0,
+                        1709.0,
+                        1166.0,
+                        1000.0,
+                        958.0
                     ],
                     "label": "rqi_lu",
                     "maxrss_delta_bytes": 0,
@@ -2111,7 +2115,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -2122,7 +2126,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 5459.0,
+                    "end_to_end_runtime_ns_median": 5500.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2131,25 +2135,25 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1125.0,
-                    "init_runtime_ns_min": 916.0,
+                    "init_runtime_ns_median": 1167.0,
+                    "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        7916.0,
-                        1416.0,
-                        1125.0,
-                        1041.0,
-                        916.0
+                        8125.0,
+                        1500.0,
+                        1167.0,
+                        958.0,
+                        1083.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1042.0,
-                    "iterate_runtime_ns_min": 875.0,
+                    "iterate_runtime_ns_median": 1083.0,
+                    "iterate_runtime_ns_min": 917.0,
                     "iterate_runtime_ns_samples": [
-                        8416.0,
-                        1250.0,
-                        875.0,
-                        1042.0,
+                        6791.0,
+                        1084.0,
+                        959.0,
+                        1083.0,
                         917.0
                     ],
                     "label": "rqi_gmres_input_prec",
@@ -2210,7 +2214,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2221,7 +2225,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 5625.0,
+                    "end_to_end_runtime_ns_median": 5500.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2230,25 +2234,25 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1166.0,
+                    "init_runtime_ns_median": 1250.0,
                     "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        7500.0,
-                        1166.0,
-                        1083.0,
-                        1166.0,
-                        958.0
+                        7709.0,
+                        1375.0,
+                        1041.0,
+                        958.0,
+                        1250.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1167.0,
-                    "iterate_runtime_ns_min": 959.0,
+                    "iterate_runtime_ns_median": 1000.0,
+                    "iterate_runtime_ns_min": 917.0,
                     "iterate_runtime_ns_samples": [
-                        7917.0,
-                        1167.0,
-                        959.0,
-                        1333.0,
+                        7125.0,
+                        1000.0,
+                        917.0,
+                        1083.0,
                         1000.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
@@ -2310,7 +2314,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2321,7 +2325,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 5376.0,
+                    "end_to_end_runtime_ns_median": 5251.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2333,8 +2337,8 @@
                     "init_runtime_ns_median": 1084.0,
                     "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        6333.0,
-                        1125.0,
+                        7500.0,
+                        1417.0,
                         1084.0,
                         1042.0,
                         958.0
@@ -2342,14 +2346,14 @@
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1000.0,
-                    "iterate_runtime_ns_min": 917.0,
+                    "iterate_runtime_ns_median": 917.0,
+                    "iterate_runtime_ns_min": 875.0,
                     "iterate_runtime_ns_samples": [
-                        6083.0,
-                        1000.0,
-                        1000.0,
+                        7125.0,
+                        1042.0,
                         917.0,
-                        1041.0
+                        917.0,
+                        875.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
                     "maxrss_delta_bytes": 0,
@@ -2410,7 +2414,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2430,25 +2434,25 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1083.0,
+                    "init_runtime_ns_median": 1167.0,
                     "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        4875.0,
-                        1166.0,
-                        1000.0,
+                        7167.0,
+                        1459.0,
+                        1167.0,
                         958.0,
                         1083.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 959.0,
-                    "iterate_runtime_ns_min": 916.0,
+                    "iterate_runtime_ns_median": 917.0,
+                    "iterate_runtime_ns_min": 875.0,
                     "iterate_runtime_ns_samples": [
-                        7292.0,
-                        1125.0,
-                        916.0,
-                        959.0,
+                        4833.0,
+                        875.0,
+                        917.0,
+                        958.0,
                         917.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
@@ -2510,7 +2514,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2521,7 +2525,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 5584.0,
+                    "end_to_end_runtime_ns_median": 5666.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2530,26 +2534,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1167.0,
-                    "init_runtime_ns_min": 959.0,
+                    "init_runtime_ns_median": 1083.0,
+                    "init_runtime_ns_min": 1000.0,
                     "init_runtime_ns_samples": [
-                        5792.0,
-                        1417.0,
+                        5208.0,
                         1083.0,
-                        1167.0,
-                        959.0
+                        1083.0,
+                        1083.0,
+                        1000.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1125.0,
-                    "iterate_runtime_ns_min": 958.0,
+                    "iterate_runtime_ns_median": 1333.0,
+                    "iterate_runtime_ns_min": 1167.0,
                     "iterate_runtime_ns_samples": [
-                        8209.0,
+                        6834.0,
+                        1333.0,
                         1167.0,
-                        1000.0,
-                        1125.0,
-                        958.0
+                        1417.0,
+                        1208.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -2610,7 +2614,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 3292.0,
+                    "starts_runtime_ns_median": 3250.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2621,18 +2625,22 @@
                     }
                 }
             ],
+            "search": {
+                "search_shift": 3.103210678210678,
+                "strategy": "largest"
+            },
             "starts_benchmark": {
-                "alloc_count": 23,
-                "bytes_allocated": 2624,
+                "alloc_count": 24,
+                "bytes_allocated": 2656,
                 "flops": null,
-                "runtime_ns_median": 3292.0,
-                "runtime_ns_min": 3000.0,
+                "runtime_ns_median": 3250.0,
+                "runtime_ns_min": 2917.0,
                 "runtime_ns_samples": [
-                    15667.0,
+                    15458.0,
                     3667.0,
-                    3292.0,
-                    3125.0,
-                    3000.0
+                    3250.0,
+                    3250.0,
+                    2917.0
                 ]
             },
             "symmetric": true
@@ -2650,7 +2658,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 41959.0
+                    "total_runtime_ns_median": 44083.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.06666666666666667,
@@ -2663,7 +2671,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 43459.0
+                    "total_runtime_ns_median": 45959.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.06666666666666667,
@@ -2676,7 +2684,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 45167.0
+                    "total_runtime_ns_median": 46500.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.06666666666666667,
@@ -2689,7 +2697,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 43667.0
+                    "total_runtime_ns_median": 46167.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.06666666666666667,
@@ -2702,7 +2710,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 44292.0
+                    "total_runtime_ns_median": 46250.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.06666666666666667,
@@ -2715,7 +2723,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 43458.0
+                    "total_runtime_ns_median": 46000.0
                 },
                 "rqi_lu": {
                     "coverage": 0.06666666666666667,
@@ -2728,7 +2736,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 42292.0
+                    "total_runtime_ns_median": 44667.0
                 }
             },
             "eltype": "Float64",
@@ -3019,19 +3027,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 0,
-                "runtime_ns_median": 20667.0,
-                "runtime_ns_min": 19750.0,
+                "runtime_ns_median": 21292.0,
+                "runtime_ns_min": 20584.0,
                 "runtime_ns_samples": [
-                    59375.0,
-                    28000.0,
-                    20667.0,
-                    20167.0,
-                    19750.0
+                    44041.0,
+                    22458.0,
+                    21125.0,
+                    20584.0,
+                    21292.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 41959.0,
+                    "end_to_end_runtime_ns_median": 44083.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3040,26 +3048,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 8032,
                     "init_flops": null,
-                    "init_runtime_ns_median": 709.0,
-                    "init_runtime_ns_min": 583.0,
+                    "init_runtime_ns_median": 583.0,
+                    "init_runtime_ns_min": 333.0,
                     "init_runtime_ns_samples": [
-                        5334.0,
-                        708.0,
-                        709.0,
-                        750.0,
+                        3250.0,
+                        584.0,
+                        458.0,
+                        333.0,
                         583.0
                     ],
                     "iterate_alloc_count": 13,
                     "iterate_bytes_allocated": 3952,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2500.0,
+                    "iterate_runtime_ns_median": 2208.0,
                     "iterate_runtime_ns_min": 2042.0,
                     "iterate_runtime_ns_samples": [
-                        10583.0,
-                        2625.0,
-                        2500.0,
+                        7375.0,
+                        2375.0,
                         2042.0,
-                        2125.0
+                        2125.0,
+                        2208.0
                     ],
                     "label": "fixed_shift_lu",
                     "maxrss_delta_bytes": 0,
@@ -3124,7 +3132,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -3135,7 +3143,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 42292.0,
+                    "end_to_end_runtime_ns_median": 44667.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3144,26 +3152,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 8032,
                     "init_flops": null,
-                    "init_runtime_ns_median": 542.0,
-                    "init_runtime_ns_min": 292.0,
+                    "init_runtime_ns_median": 375.0,
+                    "init_runtime_ns_min": 375.0,
                     "init_runtime_ns_samples": [
-                        3583.0,
-                        542.0,
-                        542.0,
-                        292.0,
-                        625.0
+                        3416.0,
+                        750.0,
+                        375.0,
+                        375.0,
+                        375.0
                     ],
                     "iterate_alloc_count": 17,
                     "iterate_bytes_allocated": 4304,
                     "iterate_flops": null,
                     "iterate_runtime_ns_median": 3000.0,
-                    "iterate_runtime_ns_min": 2792.0,
+                    "iterate_runtime_ns_min": 2916.0,
                     "iterate_runtime_ns_samples": [
-                        10542.0,
-                        3166.0,
+                        10792.0,
+                        3459.0,
                         3000.0,
-                        2792.0,
-                        2958.0
+                        2958.0,
+                        2916.0
                     ],
                     "label": "rqi_lu",
                     "maxrss_delta_bytes": 0,
@@ -3226,7 +3234,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -3237,7 +3245,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 43459.0,
+                    "end_to_end_runtime_ns_median": 45959.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3247,25 +3255,25 @@
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
                     "init_runtime_ns_median": 1667.0,
-                    "init_runtime_ns_min": 1375.0,
+                    "init_runtime_ns_min": 1500.0,
                     "init_runtime_ns_samples": [
-                        7125.0,
-                        1916.0,
-                        1542.0,
+                        7625.0,
+                        1792.0,
                         1667.0,
-                        1375.0
+                        1500.0,
+                        1542.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3042.0,
-                    "iterate_runtime_ns_min": 2916.0,
+                    "iterate_runtime_ns_median": 3000.0,
+                    "iterate_runtime_ns_min": 2917.0,
                     "iterate_runtime_ns_samples": [
-                        8292.0,
-                        3167.0,
-                        3042.0,
-                        3000.0,
-                        2916.0
+                        9208.0,
+                        3084.0,
+                        2958.0,
+                        2917.0,
+                        3000.0
                     ],
                     "label": "rqi_gmres_input_prec",
                     "maxrss_delta_bytes": 0,
@@ -3331,7 +3339,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3342,7 +3350,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 45167.0,
+                    "end_to_end_runtime_ns_median": 46500.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3351,26 +3359,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1750.0,
-                    "init_runtime_ns_min": 1459.0,
+                    "init_runtime_ns_median": 1875.0,
+                    "init_runtime_ns_min": 1416.0,
                     "init_runtime_ns_samples": [
-                        9916.0,
-                        1750.0,
-                        1834.0,
-                        1459.0,
-                        1750.0
+                        6625.0,
+                        1875.0,
+                        2000.0,
+                        1416.0,
+                        1542.0
                     ],
                     "iterate_alloc_count": 129,
                     "iterate_bytes_allocated": 13072,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4667.0,
-                    "iterate_runtime_ns_min": 4500.0,
+                    "iterate_runtime_ns_median": 3333.0,
+                    "iterate_runtime_ns_min": 3250.0,
                     "iterate_runtime_ns_samples": [
-                        11042.0,
-                        5458.0,
-                        4500.0,
-                        4667.0,
-                        4500.0
+                        8000.0,
+                        3375.0,
+                        3333.0,
+                        3250.0,
+                        3333.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
                     "maxrss_delta_bytes": 0,
@@ -3437,7 +3445,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 0,
@@ -3448,7 +3456,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 43667.0,
+                    "end_to_end_runtime_ns_median": 46167.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3457,25 +3465,25 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1834.0,
-                    "init_runtime_ns_min": 1500.0,
+                    "init_runtime_ns_median": 1750.0,
+                    "init_runtime_ns_min": 1458.0,
                     "init_runtime_ns_samples": [
-                        8292.0,
-                        2125.0,
-                        1834.0,
-                        1500.0,
-                        1541.0
+                        7458.0,
+                        1917.0,
+                        1750.0,
+                        1458.0,
+                        1542.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3083.0,
-                    "iterate_runtime_ns_min": 2875.0,
+                    "iterate_runtime_ns_median": 3125.0,
+                    "iterate_runtime_ns_min": 2917.0,
                     "iterate_runtime_ns_samples": [
-                        10583.0,
-                        3417.0,
-                        2875.0,
-                        3083.0,
+                        7542.0,
+                        3250.0,
+                        3125.0,
+                        3125.0,
                         2917.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
@@ -3543,7 +3551,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3554,7 +3562,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 44292.0,
+                    "end_to_end_runtime_ns_median": 46250.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3563,26 +3571,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1834.0,
-                    "init_runtime_ns_min": 1500.0,
+                    "init_runtime_ns_median": 1958.0,
+                    "init_runtime_ns_min": 1708.0,
                     "init_runtime_ns_samples": [
-                        7541.0,
-                        1834.0,
-                        1875.0,
-                        1500.0,
-                        1500.0
+                        8291.0,
+                        2208.0,
+                        1708.0,
+                        1958.0,
+                        1792.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3708.0,
-                    "iterate_runtime_ns_min": 3208.0,
+                    "iterate_runtime_ns_median": 3000.0,
+                    "iterate_runtime_ns_min": 2875.0,
                     "iterate_runtime_ns_samples": [
-                        9125.0,
-                        3208.0,
-                        3292.0,
-                        3708.0,
-                        4042.0
+                        9875.0,
+                        3250.0,
+                        2917.0,
+                        2875.0,
+                        3000.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -3649,7 +3657,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3660,7 +3668,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 43458.0,
+                    "end_to_end_runtime_ns_median": 46000.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3669,26 +3677,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1667.0,
-                    "init_runtime_ns_min": 1416.0,
+                    "init_runtime_ns_median": 1666.0,
+                    "init_runtime_ns_min": 1500.0,
                     "init_runtime_ns_samples": [
-                        6292.0,
-                        1875.0,
-                        1416.0,
-                        1667.0,
-                        1417.0
+                        7500.0,
+                        2250.0,
+                        1666.0,
+                        1583.0,
+                        1500.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3041.0,
-                    "iterate_runtime_ns_min": 2958.0,
+                    "iterate_runtime_ns_median": 3042.0,
+                    "iterate_runtime_ns_min": 2917.0,
                     "iterate_runtime_ns_samples": [
-                        9375.0,
-                        3250.0,
+                        8291.0,
+                        3167.0,
+                        2917.0,
                         3041.0,
-                        2959.0,
-                        2958.0
+                        3042.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -3755,7 +3763,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 38750.0,
+                    "starts_runtime_ns_median": 41292.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3766,18 +3774,22 @@
                     }
                 }
             ],
+            "search": {
+                "search_shift": 10.532416852088234,
+                "strategy": "largest"
+            },
             "starts_benchmark": {
-                "alloc_count": 23,
-                "bytes_allocated": 3488,
+                "alloc_count": 24,
+                "bytes_allocated": 3520,
                 "flops": null,
-                "runtime_ns_median": 38750.0,
-                "runtime_ns_min": 38458.0,
+                "runtime_ns_median": 41292.0,
+                "runtime_ns_min": 40708.0,
                 "runtime_ns_samples": [
-                    50500.0,
-                    38875.0,
-                    38750.0,
-                    38458.0,
-                    38625.0
+                    51375.0,
+                    41417.0,
+                    41167.0,
+                    41292.0,
+                    40708.0
                 ]
             },
             "symmetric": false
@@ -3795,7 +3807,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 58875.0
+                    "total_runtime_ns_median": 59083.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.05,
@@ -3808,7 +3820,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 60708.0
+                    "total_runtime_ns_median": 61332.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.05,
@@ -3821,7 +3833,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 61833.0
+                    "total_runtime_ns_median": 62208.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.05,
@@ -3834,7 +3846,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 60875.0
+                    "total_runtime_ns_median": 61083.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.05,
@@ -3847,7 +3859,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 60917.0
+                    "total_runtime_ns_median": 61333.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.05,
@@ -3860,7 +3872,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 60666.0
+                    "total_runtime_ns_median": 60958.0
                 },
                 "rqi_lu": {
                     "coverage": 0.05,
@@ -3873,7 +3885,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 60333.0
+                    "total_runtime_ns_median": 60208.0
                 }
             },
             "eltype": "Float64",
@@ -4354,19 +4366,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 0,
-                "runtime_ns_median": 16833.0,
-                "runtime_ns_min": 15625.0,
+                "runtime_ns_median": 16250.0,
+                "runtime_ns_min": 15791.0,
                 "runtime_ns_samples": [
-                    36667.0,
-                    19625.0,
-                    16833.0,
-                    15666.0,
-                    15625.0
+                    32584.0,
+                    18792.0,
+                    16250.0,
+                    15791.0,
+                    15958.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 58875.0,
+                    "end_to_end_runtime_ns_median": 59083.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4375,26 +4387,26 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 13120,
                     "init_flops": null,
-                    "init_runtime_ns_median": 875.0,
-                    "init_runtime_ns_min": 666.0,
+                    "init_runtime_ns_median": 1042.0,
+                    "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        5125.0,
-                        1250.0,
-                        875.0,
-                        667.0,
-                        666.0
+                        4083.0,
+                        1167.0,
+                        958.0,
+                        1042.0,
+                        958.0
                     ],
                     "iterate_alloc_count": 14,
                     "iterate_bytes_allocated": 5632,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2500.0,
-                    "iterate_runtime_ns_min": 2291.0,
+                    "iterate_runtime_ns_median": 2375.0,
+                    "iterate_runtime_ns_min": 2250.0,
                     "iterate_runtime_ns_samples": [
-                        11667.0,
-                        2875.0,
-                        2500.0,
-                        2292.0,
-                        2291.0
+                        12916.0,
+                        2750.0,
+                        2375.0,
+                        2375.0,
+                        2250.0
                     ],
                     "label": "fixed_shift_lu",
                     "maxrss_delta_bytes": 0,
@@ -4462,7 +4474,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -4473,7 +4485,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 60333.0,
+                    "end_to_end_runtime_ns_median": 60208.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4482,26 +4494,26 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 13120,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1125.0,
-                    "init_runtime_ns_min": 667.0,
+                    "init_runtime_ns_median": 1042.0,
+                    "init_runtime_ns_min": 834.0,
                     "init_runtime_ns_samples": [
-                        5208.0,
+                        4917.0,
+                        834.0,
+                        1000.0,
                         1125.0,
-                        1167.0,
-                        750.0,
-                        667.0
+                        1042.0
                     ],
                     "iterate_alloc_count": 18,
                     "iterate_bytes_allocated": 6080,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3708.0,
-                    "iterate_runtime_ns_min": 3417.0,
+                    "iterate_runtime_ns_median": 3500.0,
+                    "iterate_runtime_ns_min": 3458.0,
                     "iterate_runtime_ns_samples": [
-                        12666.0,
-                        3625.0,
-                        3417.0,
-                        3708.0,
-                        3708.0
+                        12875.0,
+                        3500.0,
+                        3458.0,
+                        3458.0,
+                        3625.0
                     ],
                     "label": "rqi_lu",
                     "maxrss_delta_bytes": 0,
@@ -4569,7 +4581,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -4580,7 +4592,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 60708.0,
+                    "end_to_end_runtime_ns_median": 61332.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4589,26 +4601,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2166.0,
-                    "init_runtime_ns_min": 1833.0,
+                    "init_runtime_ns_median": 2375.0,
+                    "init_runtime_ns_min": 1916.0,
                     "init_runtime_ns_samples": [
-                        13042.0,
-                        3333.0,
-                        2166.0,
-                        2125.0,
-                        1833.0
+                        7958.0,
+                        2792.0,
+                        1916.0,
+                        2375.0,
+                        2250.0
                     ],
                     "iterate_alloc_count": 147,
                     "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3042.0,
-                    "iterate_runtime_ns_min": 2958.0,
+                    "iterate_runtime_ns_median": 3291.0,
+                    "iterate_runtime_ns_min": 2959.0,
                     "iterate_runtime_ns_samples": [
-                        9125.0,
-                        3333.0,
-                        3000.0,
+                        8666.0,
+                        3375.0,
                         3042.0,
-                        2958.0
+                        2959.0,
+                        3291.0
                     ],
                     "label": "rqi_gmres_input_prec",
                     "maxrss_delta_bytes": 0,
@@ -4679,7 +4691,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 1,
@@ -4690,7 +4702,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 61833.0,
+                    "end_to_end_runtime_ns_median": 62208.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4699,26 +4711,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2000.0,
-                    "init_runtime_ns_min": 1875.0,
+                    "init_runtime_ns_median": 2375.0,
+                    "init_runtime_ns_min": 2250.0,
                     "init_runtime_ns_samples": [
-                        9250.0,
-                        2583.0,
-                        2000.0,
-                        1875.0,
-                        1959.0
+                        9916.0,
+                        3042.0,
+                        2250.0,
+                        2291.0,
+                        2375.0
                     ],
                     "iterate_alloc_count": 149,
                     "iterate_bytes_allocated": 19216,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4333.0,
-                    "iterate_runtime_ns_min": 4125.0,
+                    "iterate_runtime_ns_median": 4167.0,
+                    "iterate_runtime_ns_min": 4042.0,
                     "iterate_runtime_ns_samples": [
-                        11000.0,
-                        4333.0,
-                        4375.0,
-                        4125.0,
-                        4125.0
+                        11583.0,
+                        4417.0,
+                        4042.0,
+                        4167.0,
+                        4166.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
                     "maxrss_delta_bytes": 0,
@@ -4790,7 +4802,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 0,
@@ -4801,7 +4813,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 60875.0,
+                    "end_to_end_runtime_ns_median": 61083.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4810,26 +4822,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2125.0,
-                    "init_runtime_ns_min": 1958.0,
+                    "init_runtime_ns_median": 2292.0,
+                    "init_runtime_ns_min": 2166.0,
                     "init_runtime_ns_samples": [
-                        15875.0,
-                        2791.0,
-                        2125.0,
-                        2000.0,
-                        1958.0
+                        8167.0,
+                        2500.0,
+                        2166.0,
+                        2292.0,
+                        2167.0
                     ],
                     "iterate_alloc_count": 147,
                     "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3250.0,
-                    "iterate_runtime_ns_min": 3125.0,
+                    "iterate_runtime_ns_median": 3125.0,
+                    "iterate_runtime_ns_min": 3000.0,
                     "iterate_runtime_ns_samples": [
-                        8958.0,
-                        3125.0,
-                        3250.0,
-                        3167.0,
-                        3459.0
+                        7750.0,
+                        3166.0,
+                        3000.0,
+                        3000.0,
+                        3125.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
                     "maxrss_delta_bytes": 0,
@@ -4901,7 +4913,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 1,
@@ -4912,7 +4924,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 60917.0,
+                    "end_to_end_runtime_ns_median": 61333.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4921,26 +4933,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2167.0,
-                    "init_runtime_ns_min": 1875.0,
+                    "init_runtime_ns_median": 2292.0,
+                    "init_runtime_ns_min": 2209.0,
                     "init_runtime_ns_samples": [
-                        11042.0,
+                        8917.0,
                         2917.0,
-                        2167.0,
-                        2000.0,
-                        1875.0
+                        2209.0,
+                        2209.0,
+                        2292.0
                     ],
                     "iterate_alloc_count": 147,
                     "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3250.0,
-                    "iterate_runtime_ns_min": 2959.0,
+                    "iterate_runtime_ns_median": 3375.0,
+                    "iterate_runtime_ns_min": 2875.0,
                     "iterate_runtime_ns_samples": [
-                        9083.0,
+                        7500.0,
                         3375.0,
-                        2959.0,
-                        3041.0,
-                        3250.0
+                        3333.0,
+                        2875.0,
+                        3833.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -5012,7 +5024,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 1,
@@ -5023,7 +5035,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 60666.0,
+                    "end_to_end_runtime_ns_median": 60958.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -5032,26 +5044,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2166.0,
-                    "init_runtime_ns_min": 1875.0,
+                    "init_runtime_ns_median": 2250.0,
+                    "init_runtime_ns_min": 2166.0,
                     "init_runtime_ns_samples": [
-                        9500.0,
-                        2666.0,
+                        8625.0,
+                        2708.0,
                         2166.0,
-                        1958.0,
-                        1875.0
+                        2250.0,
+                        2167.0
                     ],
                     "iterate_alloc_count": 147,
                     "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3000.0,
-                    "iterate_runtime_ns_min": 2834.0,
+                    "iterate_runtime_ns_median": 3042.0,
+                    "iterate_runtime_ns_min": 2959.0,
                     "iterate_runtime_ns_samples": [
-                        9333.0,
-                        3000.0,
-                        2917.0,
-                        3208.0,
-                        2834.0
+                        6792.0,
+                        2959.0,
+                        3083.0,
+                        3042.0,
+                        3000.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -5123,7 +5135,7 @@
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 55500.0,
+                    "starts_runtime_ns_median": 55666.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 1,
@@ -5134,18 +5146,22 @@
                     }
                 }
             ],
+            "search": {
+                "search_shift": 14.22099306827751,
+                "strategy": "largest"
+            },
             "starts_benchmark": {
-                "alloc_count": 24,
-                "bytes_allocated": 5312,
+                "alloc_count": 25,
+                "bytes_allocated": 5344,
                 "flops": null,
-                "runtime_ns_median": 55500.0,
-                "runtime_ns_min": 51917.0,
+                "runtime_ns_median": 55666.0,
+                "runtime_ns_min": 53459.0,
                 "runtime_ns_samples": [
-                    67875.0,
-                    65542.0,
-                    55500.0,
-                    52625.0,
-                    51917.0
+                    70792.0,
+                    53459.0,
+                    55375.0,
+                    55666.0,
+                    55958.0
                 ]
             },
             "symmetric": true
@@ -5154,6 +5170,7 @@
     "meta": {
         "args": {
             "eltype": "Float64",
+            "from-results": null,
             "gmres-restart": 0,
             "inner-abstol": 0.0,
             "inner-maxiter": 0,
@@ -5200,6 +5217,6 @@
             "rqi_gmres_prev_prec (tau=1.0)"
         ],
         "os": "arm64-apple-darwin27.0.0",
-        "timestamp": "2026-11-19T16:01:03"
+        "timestamp": "2026-11-19T16:03:44"
     }
 }

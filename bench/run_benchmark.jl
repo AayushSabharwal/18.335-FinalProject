@@ -128,13 +128,37 @@ const ELTYPE_MAP = Dict(
     "Complex{BigFloat}" => Complex{BigFloat},
 )
 
+"""
+    merge_saved_args!(args, defaults, path)
+
+Fill every option left at its default with the corresponding recorded
+`meta.args` entry from a previous result file. Explicitly passed options
+differ from the defaults and therefore win (with the edge case that
+explicitly passing a value equal to the default is treated as "unset").
+"""
+function merge_saved_args!(args::Dict{String,Any}, defaults::Dict{String,Any},
+                           path::AbstractString)
+    saved = get(get(JSON.parsefile(path), "meta", Dict()), "args", nothing)
+    saved === nothing &&
+        error("--from-results: no meta.args recorded in $path")
+    for (k, v) in args
+        k == "from-results" && continue
+        isequal(v, defaults[k]) && haskey(saved, k) && (args[k] = saved[k])
+    end
+    return args
+end
+
 function parse_cli()
     s = ArgParseSettings(description = "Benchmark RQI variants on dense matrices.")
     @add_arg_table! s begin
         "--matrices", "-m"
-            help = "Directory of matrix text files, or comma-separated list of files"
+            help = "Directory of matrix text files, or comma-separated list of files (may be omitted when --from-results supplies it)"
             arg_type = String
-            required = true
+            default = nothing
+        "--from-results"
+            help = "Replicate a previous run: unset options default to the recorded meta.args of this result file; options passed explicitly always win"
+            arg_type = String
+            default = nothing
         "--out", "-o"
             help = "Output JSON path"
             arg_type = String
@@ -216,7 +240,14 @@ function parse_cli()
             help = "Skip the pre-flight sanity check"
             action = :store_true
     end
-    return parse_args(s)
+    args = parse_args(s)
+    if args["from-results"] !== nothing
+        merge_saved_args!(args, parse_args(String[], s),
+                          args["from-results"])
+    end
+    args["matrices"] === nothing &&
+        error("--matrices is required (or provide --from-results)")
+    return args
 end
 
 function matrix_files(spec::String)
@@ -442,12 +473,15 @@ function main()
         # CLI args are unpacked into concrete values here so build_starts
         # is type-stable in the timed path.
         strategy = args["start-strategy"]
-        shift_arg = isnan(args["shift"]) ? nothing : T(args["shift"])
+        # (saved args round-trip NaN → null through JSON, so treat null as
+        # unset too)
+        shift_arg = (args["shift"] === nothing || isnan(args["shift"])) ?
+                    nothing : T(args["shift"])
         # parsed as ComplexF64 so "0.1+1.0im" is accepted; a nonzero imag
         # part under a real --eltype fails at T(...) with InexactError.
         ssearch_arg = args["search-shift"] === nothing ? nothing :
                       T(parse(ComplexF64, args["search-shift"]))
-        starts = build_starts(strategy, A, Bm;
+        starts, search_info = build_starts(strategy, A, Bm;
                               seed = args["seed"],
                               nstarts = args["nstarts"],
                               power_iters = args["power-iters"],
@@ -468,7 +502,7 @@ function main()
                          shift = shift_arg,
                          search_shift = ssearch_arg)
         end
-        match_tol = isnan(args["match-tol"]) ?
+        match_tol = (args["match-tol"] === nothing || isnan(args["match-tol"])) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
             args["match-tol"]
 
@@ -510,6 +544,8 @@ function main()
             "eltype" => string(T),
             "match_tol" => match_tol,
             "n_starts" => length(starts),
+            "search" => Dict{String,Any}("strategy" => strategy,
+                (string(k) => v for (k, v) in pairs(search_info))...),
             "starts_benchmark" => _sanitize(Dict{String,Any}(
                 "runtime_ns_median" => median(starts_trial.times),
                 "runtime_ns_min" => minimum(starts_trial.times),

@@ -169,8 +169,8 @@
       "type": "object",
       "required": [
         "file", "n", "generalized", "symmetric", "norm_inf", "eltype",
-        "match_tol", "n_starts", "starts_benchmark", "oracle", "runs",
-        "coverage"
+        "match_tol", "n_starts", "search", "starts_benchmark", "oracle",
+        "runs", "coverage"
       ],
       "properties": {
         "file": { "type": "string" },
@@ -187,6 +187,27 @@
           "description": "Tolerance for matching found eigenvalues to oracle eigenvalues"
         },
         "n_starts": { "type": "integer", "minimum": 1 },
+        "search": {
+          "type": "object",
+          "description": "Search-phase configuration as actually resolved (auto-derived values included, so the run is reproducible)",
+          "required": ["strategy"],
+          "properties": {
+            "strategy": { "enum": ["rq", "grid", "largest"] },
+            "search_shift": {
+              "$ref": "#/$defs/scalar",
+              "description": "Resolved shift-invert target s for largest (CLI-provided or Gershgorin-derived)"
+            },
+            "lo": {
+              "type": ["number", "null"],
+              "description": "Left Gershgorin bound used by grid"
+            },
+            "hi": {
+              "type": ["number", "null"],
+              "description": "Right Gershgorin bound used by grid"
+            }
+          },
+          "additionalProperties": false
+        },
         "starts_benchmark": { "$ref": "#/$defs/trial_stats" },
         "oracle": { "$ref": "#/$defs/oracle_entry" },
         "runs": {
