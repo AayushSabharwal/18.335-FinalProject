@@ -544,8 +544,8 @@ function main()
             "eltype" => string(T),
             "match_tol" => match_tol,
             "n_starts" => length(starts),
-            "search" => Dict{String,Any}("strategy" => strategy,
-                (string(k) => v for (k, v) in pairs(search_info))...),
+            "search" => merge!(Dict{String,Any}("strategy" => strategy),
+                             search_info),
             "starts_benchmark" => _sanitize(Dict{String,Any}(
                 "runtime_ns_median" => median(starts_trial.times),
                 "runtime_ns_min" => minimum(starts_trial.times),
