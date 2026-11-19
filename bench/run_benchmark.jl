@@ -210,15 +210,14 @@ _sanitize(x::AbstractVector) = [_sanitize(v) for v in x]
 _sanitize(x::AbstractMatrix) = [_sanitize(collect(r)) for r in eachrow(x)]
 _sanitize(d::AbstractDict) = Dict(k => _sanitize(v) for (k, v) in pairs(d))
 
-function run_entry_dict(r::RQIResult, label, start_index, trial, init_trial,
-                        maxrss_delta, oracle_F, params)
+"""Serialization for one start's deterministic RQIResult (timing lives at
+the method level: the iterate trial measures ALL starts together)."""
+function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
     i, λo, u = nearest_oracle(oracle_F, r.eigenvalue)
     c = r.counters
-    d = Dict{String,Any}(
-        "method" => r.method,
-        "label" => label,
+    _sanitize(Dict{String,Any}(
         "start_index" => start_index,
-        "params" => params,
+        "sigma0" => σ0,
         "converged" => r.converged,
         "fail_reason" => r.fail_reason,
         "outer_iterations" => c.outer_iters,
@@ -228,32 +227,69 @@ function run_entry_dict(r::RQIResult, label, start_index, trial, init_trial,
         "gmres_iterations_total" => c.gmres_iters_total,
         "gmres_stalled_solves" => c.gmres_stalled,
         "gmres_iterations_per_step" => c.gmres_iters_per_step,
-        # init: state setup (buffers, caches, first factorization)
-        "init_runtime_ns_median" => median(init_trial.times),
-        "init_runtime_ns_min" => minimum(init_trial.times),
-        "init_runtime_ns_samples" => init_trial.times,
-        "init_bytes_allocated" => init_trial.memory,
-        "init_alloc_count" => init_trial.allocs,
-        # iterate: the outer RQI loop only (init excluded)
-        "runtime_ns_median" => median(trial.times),
-        "runtime_ns_min" => minimum(trial.times),
-        "runtime_ns_samples" => trial.times,
-        "gc_time_ns_max" => maximum(trial.gctimes),
-        "bytes_allocated" => trial.memory,
-        "alloc_count" => trial.allocs,
-        "total_runtime_ns_median" =>
-            median(init_trial.times) + median(trial.times),
-        "maxrss_delta_bytes" => maxrss_delta,
         "eigenvalue" => r.eigenvalue,
         "eigenvector" => r.eigenvector,
         "final_residual" => r.final_residual,
         "residual_history" => c.residual_history,
         "shift_history" => c.shift_history,
-        "oracle_nearest_eigenvalue" => _sanitize(λo),
-        "eigenvalue_abs_error" => _sanitize(abs(r.eigenvalue - λo)),
-        "eigenvector_error" => _sanitize(eigenvector_error(r.eigenvector, u)),
+        "oracle_nearest_eigenvalue" => λo,
+        "eigenvalue_abs_error" => abs(r.eigenvalue - λo),
+        "eigenvector_error" => eigenvector_error(r.eigenvector, u),
+    ))
+end
+
+"""Method-level entry: one init trial, one iterate trial covering ALL starts
+(same SolverState reset between them), plus the per-start results."""
+function run_entry_dict(label, params, results::Vector{RQIResult}, starts,
+                        init_cnt, trial, init_trial, starts_ns_median,
+                        maxrss_delta, oracle_F)
+    start_entries = [start_entry_dict(r, j - 1, starts[j][2], oracle_F)
+                     for (j, r) in enumerate(results)]
+    totals = Dict{String,Any}(
+        "outer_iterations" => sum(r -> r.counters.outer_iters, results),
+        "n_shifts" => sum(r -> r.counters.n_shifts, results),
+        # factorizations = init's first LU + every iteration-phase fac
+        "n_factorizations" =>
+            init_cnt.n_factorizations +
+            sum(r -> r.counters.n_factorizations, results),
+        "n_perturbations" =>
+            init_cnt.n_perturbations +
+            sum(r -> r.counters.n_perturbations, results),
+        "gmres_iterations_total" =>
+            sum(r -> r.counters.gmres_iters_total, results),
+        "gmres_stalled_solves" => sum(r -> r.counters.gmres_stalled, results),
     )
-    return _sanitize(d)
+    _sanitize(Dict{String,Any}(
+        "method" => results[1].method,
+        "label" => label,
+        "params" => params,
+        "n_starts" => length(results),
+        "init" => Dict{String,Any}(
+            "n_factorizations" => init_cnt.n_factorizations,
+            "n_perturbations" => init_cnt.n_perturbations,
+        ),
+        "totals" => totals,
+        # search phase (shared across methods, timed once per matrix)
+        "starts_runtime_ns_median" => starts_ns_median,
+        # init phase: state setup + first factorization
+        "init_runtime_ns_median" => median(init_trial.times),
+        "init_runtime_ns_min" => minimum(init_trial.times),
+        "init_runtime_ns_samples" => init_trial.times,
+        "init_bytes_allocated" => init_trial.memory,
+        "init_alloc_count" => init_trial.allocs,
+        # iterate phase: ALL starts on one reused SolverState, incl. resets
+        "iterate_runtime_ns_median" => median(trial.times),
+        "iterate_runtime_ns_min" => minimum(trial.times),
+        "iterate_runtime_ns_samples" => trial.times,
+        "gc_time_ns_max" => maximum(trial.gctimes),
+        "iterate_bytes_allocated" => trial.memory,
+        "iterate_alloc_count" => trial.allocs,
+        # honest end-to-end cost to run the search strategy
+        "end_to_end_runtime_ns_median" =>
+            starts_ns_median + median(init_trial.times) + median(trial.times),
+        "maxrss_delta_bytes" => maxrss_delta,
+        "starts" => start_entries,
+    ))
 end
 
 """
@@ -324,7 +360,13 @@ function main()
         A = load_matrix(file, T)
         n = size(A, 1)
         normA = opnorm(A, Inf)
+        # Search phase: compute the starts once per matrix (shared by all
+        # methods) and time it — for `largest` this is the shifted power
+        # iteration, a real cost the oracle comparison should include.
         starts = build_starts(args["start-strategy"], A, args)
+        starts_trial = run(@benchmarkable(
+            build_starts($(args["start-strategy"]), $A, $args)
+        ); samples = args["samples"], evals = 1)
         match_tol = isnan(args["match-tol"]) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
             args["match-tol"]
@@ -359,6 +401,13 @@ function main()
             "eltype" => string(T),
             "match_tol" => match_tol,
             "n_starts" => length(starts),
+            "starts_benchmark" => _sanitize(Dict{String,Any}(
+                "runtime_ns_median" => median(starts_trial.times),
+                "runtime_ns_min" => minimum(starts_trial.times),
+                "runtime_ns_samples" => starts_trial.times,
+                "bytes_allocated" => starts_trial.memory,
+                "alloc_count" => starts_trial.allocs,
+            )),
             "oracle" => oracle_dict,
             "runs" => Any[],
             "coverage" => Dict{String,Any}(),
@@ -366,10 +415,12 @@ function main()
 
         results = Tuple{String,RQIResult}[]
         total_times = Dict{String,Float64}()
+        σ0_init = T(starts[1][2])
+        v0_init = normalize(Vector{T}(starts[1][1]))
 
-        for (si, (v0, σ0)) in enumerate(starts), m in methods
+        for m in methods
             label = method_label(m)
-            print(stderr, "   start $si/$(length(starts)) $label ... ")
+            print(stderr, "   $label ... ")
             inner_max = args["inner-maxiter"] <= 0 ? n : args["inner-maxiter"]
             params = Dict{String,Any}(
                 "tol" => args["tol"], "maxiter" => args["maxiter"],
@@ -379,50 +430,67 @@ function main()
                 "gmres_restart" => args["gmres-restart"],
                 "power_iters" => args["start-strategy"] == "largest" ?
                                  args["power-iters"] : 0,
-                "seed" => args["seed"], "sigma0" => σ0,
+                "seed" => args["seed"],
             )
             m isa GMRESPrevPrec && (params["tau"] = m.tau)
-            v0n = normalize(Vector{T}(v0))
-            σ0t = T(σ0)
-            # Deterministic run: captures the eigenpair + counters.
-            st = init_state(m, A, σ0t, v0n, normA;
+
+            # Deterministic pass: one init_state, then ALL starts on the
+            # same state (reset between starts) — mirrors the timed loop.
+            rss0 = Sys.maxrss()
+            st = init_state(m, A, σ0_init, v0_init, normA;
                             inner_reltol = args["inner-reltol"],
                             inner_abstol = args["inner-abstol"],
                             inner_maxiter = args["inner-maxiter"],
                             gmres_restart = args["gmres-restart"])
-            result = run_rqi!(st, A, v0n, σ0t; tol = args["tol"],
-                              maxiter = args["maxiter"])
-            rss0 = Sys.maxrss()
+            init_cnt = (n_factorizations = st.counters.n_factorizations,
+                        n_perturbations = st.counters.n_perturbations)
+            mresults = RQIResult[]
+            for (v0, σ0) in starts
+                reset_state!(st, A, σ0)
+                push!(mresults, run_rqi!(st, A, v0, σ0;
+                                        tol = args["tol"],
+                                        maxiter = args["maxiter"]))
+            end
+            maxrss_delta = Sys.maxrss() - rss0
+
             # Init phase: state + first factorization.
             init_trial = run(@benchmarkable(
-                init_state($m, $A, $σ0t, $v0n, $normA;
+                init_state($m, $A, $σ0_init, $v0_init, $normA;
                            inner_reltol = $(args["inner-reltol"]),
                            inner_abstol = $(args["inner-abstol"]),
                            inner_maxiter = $(args["inner-maxiter"]),
                            gmres_restart = $(args["gmres-restart"]))
             ); samples = args["samples"], evals = 1)
-            # Iterate phase only: setup= builds a fresh state per sample,
-            # untimed, so init/alloc cost doesn't leak into this trial.
-            trial = run(@benchmarkable(
-                run_rqi!(st_, $A, $v0n, $σ0t; tol = $(args["tol"]),
-                         maxiter = $(args["maxiter"]));
-                setup = (st_ = init_state($m, $A, $σ0t, $v0n, $normA;
+            # Iterate phase: ALL starts on one reused SolverState, incl.
+            # reset_state! between them; setup= rebuilds the state untimed.
+            trial = run(@benchmarkable(begin
+                    for (v0_j, σ0_j) in $starts
+                        reset_state!(st_, $A, σ0_j)
+                        run_rqi!(st_, $A, v0_j, σ0_j;
+                                 tol = $(args["tol"]),
+                                 maxiter = $(args["maxiter"]))
+                    end
+                end;
+                setup = (st_ = init_state($m, $A, $σ0_init, $v0_init, $normA;
                            inner_reltol = $(args["inner-reltol"]),
                            inner_abstol = $(args["inner-abstol"]),
                            inner_maxiter = $(args["inner-maxiter"]),
                            gmres_restart = $(args["gmres-restart"])))
             ); samples = args["samples"], evals = 1)
+
+            starts_med = median(starts_trial.times)
             push!(entry["runs"],
-                  run_entry_dict(result, label, si - 1, trial, init_trial,
-                                 Sys.maxrss() - rss0, F, params))
-            push!(results, (label, result))
+                  run_entry_dict(label, params, mresults, starts, init_cnt,
+                                 trial, init_trial, starts_med, maxrss_delta,
+                                 F))
+            append!(results, ((label, r) for r in mresults))
             total_times[label] =
-                get(total_times, label, 0.0) +
-                median(init_trial.times) + median(trial.times)
-            println(stderr, "$(result.converged ? "converged" : "FAILED") " *
-                          "iters=$(result.counters.outer_iters) " *
-                          "facs=$(result.counters.n_factorizations) " *
-                          "λ=$(result.eigenvalue)")
+                starts_med + median(init_trial.times) + median(trial.times)
+            nconv = count(r -> r.converged, mresults)
+            tot_facs = init_cnt.n_factorizations +
+                       sum(r -> r.counters.n_factorizations, mresults)
+            println(stderr, "$nconv/$(length(mresults)) converged " *
+                          "facs=$tot_facs λ=$(mresults[1].eigenvalue)")
         end
 
         entry["coverage"] = _sanitize(coverage_summary(results, F, match_tol,

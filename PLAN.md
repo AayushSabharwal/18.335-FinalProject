@@ -101,45 +101,52 @@ Near-singular `(A - σ I)` is the norm in RQI. If `lu` reports a zero pivot
   `--inner-maxiter`, `--taus 0,0.01,0.1,1`, `--samples 5`, `--seed 1234`.
 - Initial guess: `v0 = normalize(rand(MersenneTwister(seed), n))`
   (deterministic, recorded); `σ0 = v0' A v0` unless `--shift` given.
-- Timing via `BenchmarkTools.jl`: each (matrix × method) run as
-  `@benchmark run_rqi(...) evals=1 samples=N` (`evals=1` — each run is a
-  full solve; BenchmarkTools handles warmup + GC between samples). The
-  `Trial` gives per-sample times, `allocs`, and `memory` estimates; we
-  store all samples plus min/median. The returned `RQIResult`
-  (eigenpair, counters, histories) is captured from a dedicated
-  deterministic run alongside the trial.
+- Timing via `BenchmarkTools.jl` (`evals=1`, `samples=N` per trial) in
+  three phases, so that method costs are decomposed and the search cost
+  is included in the honest end-to-end total:
+  - `build_starts` — once per matrix (shared by all methods); for
+    `largest` this is the shifted power iteration.
+  - `init_state` — state setup + first factorization (per method).
+  - Iterate — ALL starts on ONE `SolverState`, `reset_state!` between
+    them, measured as a single trial; `setup=` rebuilds the state
+    untimed per sample.
+  `end_to_end_runtime_ns_median = starts + init + iterate` is the honest
+  cost of the search strategy. The `Trial` gives per-sample times,
+  `allocs`, and `memory` estimates; eigenpairs/counters come from a
+  dedicated deterministic pass that mirrors the timed loop.
 - Also records `Sys.maxrss()` delta per run as a peak-memory proxy.
 - Writes one JSON file at the end (also flushed incrementally per matrix
   so a crash mid-run loses nothing).
 
 ## Statistics recorded (JSON schema)
 
-Per run:
+Per (matrix × method) run entry — `init`/`totals` aggregate counters, and
+`starts` holds the per-start results (eigenpair, histories, oracle errors):
 
 ```json
 {
   "method": "rqi_gmres_prev_prec",
   "params": {"tau": 0.1, "tol": 1e-10, "inner_reltol": 1e-10, "seed": 1234},
-  "converged": true,
-  "outer_iterations": 5,
-  "n_shifts": 5,
-  "n_factorizations": 2,
-  "n_perturbations": 0,
-  "gmres_iterations_total": 37,
-  "gmres_iterations_per_step": [12, 10, 8, 5, 2],
-  "runtime_ns_median": 123456,
-  "runtime_ns_samples": [123456, ...],
-  "bytes_allocated": 45678,
-  "gc_time_ns": 0,
+  "n_starts": 10,
+  "init": {"n_factorizations": 1},
+  "totals": {"outer_iterations": 25, "n_shifts": 25,
+             "n_factorizations": 4, "gmres_iterations_total": 210},
+  "starts_runtime_ns_median": 30000,
+  "init_runtime_ns_median": 3000,
+  "iterate_runtime_ns_median": 500000,
+  "end_to_end_runtime_ns_median": 533000,
+  "init_bytes_allocated": 4096,
+  "iterate_bytes_allocated": 45678,
   "maxrss_delta_bytes": 0,
-  "eigenvalue": 3.141592653589793,
-  "eigenvector": [0.123..., ...],
-  "final_residual": 1.2e-14,
-  "residual_history": [3.4e-1, ...],
-  "shift_history": [2.9, 3.13, ...],
-  "oracle_nearest_eigenvalue": 3.141592653589793,
-  "eigenvalue_abs_error": 1e-15,
-  "eigenvector_error": 2.3e-14
+  "starts": [{
+    "sigma0": 2.5, "converged": true, "outer_iterations": 5,
+    "eigenvalue": 3.141592653589793, "eigenvector": [0.123..., ...],
+    "final_residual": 1.2e-14, "residual_history": [3.4e-1, ...],
+    "shift_history": [2.9, 3.13, ...],
+    "oracle_nearest_eigenvalue": 3.141592653589793,
+    "eigenvalue_abs_error": 1e-15,
+    "eigenvector_error": 2.3e-14
+  }]
 }
 ```
 

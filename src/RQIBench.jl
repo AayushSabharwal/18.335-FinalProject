@@ -20,9 +20,9 @@ using Printf
 using Random
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
-       RQICounters, RQIResult, run_rqi, run_rqi!, init_state, run_oracle,
-       load_matrix, method_tag, nearest_oracle, eigenvector_error,
-       gershgorin_bounds, sanity_check
+       RQICounters, RQIResult, run_rqi, run_rqi!, init_state, reset_state!,
+       run_oracle, load_matrix, method_tag, nearest_oracle,
+       eigenvector_error, gershgorin_bounds, sanity_check
 
 # ---------------------------------------------------------------------------
 # Methods
@@ -268,6 +268,43 @@ end
 # ---------------------------------------------------------------------------
 # Outer iteration (shared by every method)
 # ---------------------------------------------------------------------------
+
+"""
+    reset_state!(st::SolverState, A, σ0)
+
+Reset the per-run counters so `st` can be reused for another [`run_rqi!`](@ref)
+call — benchmarks amortize one `init_state` over several starts.
+
+Per-method semantics for the new start's σ0:
+
+- [`FixedShiftLU`](@ref): the factorization IS the solver, so a different
+  start needs its own — refactorize `A - σ0 I` whenever σ0 moved (each
+  start then targets the eigenvalue nearest *its* σ0, not the init one).
+- [`RefactorLU`](@ref): invalidate `σ_solve`; the first solve refactorizes
+  lazily through the normal shift-change path.
+- GMRES methods: invalidate `σ_solve` (fresh `cache.A`), but `st.prec` /
+  `σ_fac` carry over — for `GMRESInputPrec` the preconditioner stays the
+  init factorization; for `GMRESPrevPrec` the previous start's last
+  factorization is the initial preconditioner and τ decides refreshes.
+"""
+function reset_state!(st::SolverState{<:FixedShiftLU,<:Any,T}, A, σ0) where {T}
+    st.counters = RQICounters{T}()
+    σ = T(σ0)
+    if σ != st.σ_solve
+        st.counters.n_shifts += 1
+        shift_into!(st.S, A, σ)
+        st.cache.A = st.S      # isfresh → refactorizes on next solve
+        st.counters.n_factorizations += 1
+        st.σ_solve = σ
+    end
+    return st
+end
+
+function reset_state!(st::SolverState{<:Any,<:Any,T}, A, σ0) where {T}
+    st.counters = RQICounters{T}()
+    st.σ_solve = T(NaN)     # force cache.A refresh on next solve
+    return st
+end
 
 """
     run_rqi!(st::SolverState, A, v0, σ0; tol, maxiter) -> RQIResult
