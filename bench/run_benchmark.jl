@@ -18,14 +18,13 @@ using .RQIBench
 # ---------------------------------------------------------------------------
 # LIKWID.jl is a pinned project dependency, but it is only *usable* on
 # Linux (perf_event / access-daemon permissions) — on other platforms it
-# must not be loaded or even parsed for its macros. `find_package` runs
-# at parse time inside @static, so this `using` is only spliced in where
-# LIKWID is actually installed. On a Linux machine the driver
-# instruments each phase automatically; elsewhere every `flops` entry
-# serializes as null.
+# must not be loaded or even parsed for its macros. The @static guard
+# is evaluated at parse time, so this `using` only exists on Linux —
+# where the driver instruments each phase automatically; elsewhere every
+# `flops` entry serializes as null.
 
 const FLOPS_GROUP = "FLOPS_DP"
-@static if Sys.islinux() && !isnothing(Base.find_package("LIKWID"))
+@static if Sys.islinux()
     using LIKWID
 end
 
