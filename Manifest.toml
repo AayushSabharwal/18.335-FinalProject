@@ -2,7 +2,7 @@
 
 julia_version = "1.13.1"
 manifest_format = "2.1"
-project_hash = "16e84a4361caecd15eae98da300d15b102dcfdbd"
+project_hash = "72dc1fa1f015abd428d3977258d724d033896367"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -329,6 +329,19 @@ version = "1.13.4"
     [deps.JSON.weakdeps]
     ArrowTypes = "31f734f8-188a-4ce0-8406-c8a06bd891cd"
     Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+
+[[deps.JSONSchema]]
+deps = ["Downloads", "JSON", "URIs"]
+git-tree-sha1 = "5864ebcd5d9c6966c35bc29e536c8b40d713c00c"
+registries = "General"
+uuid = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
+version = "1.6.0"
+
+    [deps.JSONSchema.extensions]
+    JSONSchemaJSON3Ext = "JSON3"
+
+    [deps.JSONSchema.weakdeps]
+    JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 
 [[deps.JuliaSyntaxHighlighting]]
 deps = ["StyledStrings"]
@@ -898,6 +911,13 @@ git-tree-sha1 = "43044b737fa70bc12f6105061d3da38f881a3e3c"
 registries = "General"
 uuid = "b718987f-49a8-5099-9789-dcd902bef87d"
 version = "1.0.2"
+
+[[deps.URIs]]
+deps = ["Serialization"]
+git-tree-sha1 = "eb3b85ca904a1d1647b15acc091b113b8874b648"
+registries = "General"
+uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
+version = "1.7.3"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]

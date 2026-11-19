@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/rqi-bench/output.schema.json",
+  "title": "RQI benchmark output",
+  "description": "Output format of bench/run_benchmark.jl. Scalars follow the element type T: real T serializes as a JSON number, complex T as {\"re\", \"im\"}. Non-finite floats (NaN/Inf) serialize as null, so every numeric field is nullable.",
+  "type": "object",
+  "required": ["meta", "matrices"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": [
+        "timestamp", "julia_version", "os", "blas_config",
+        "blas_threads", "args", "eltype", "methods"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "description": "Local time, yyyy-mm-ddTHH:MM:SS"
+        },
+        "julia_version": { "type": "string" },
+        "os": {
+          "type": "string",
+          "description": "Sys.MACHINE, e.g. aarch64-apple-darwin24.6.0"
+        },
+        "blas_config": { "type": "string" },
+        "blas_threads": { "type": "integer", "minimum": 1 },
+        "args": {
+          "type": "object",
+          "description": "Parsed CLI arguments verbatim (ArgParse Dict). NaN-valued options serialize as null.",
+          "additionalProperties": {
+            "type": ["string", "number", "integer", "boolean", "null"]
+          }
+        },
+        "eltype": {
+          "type": "string",
+          "description": "Element type used for the computation, e.g. Float64, ComplexF64"
+        },
+        "methods": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "method_label for each method run, in run order"
+        }
+      },
+      "additionalProperties": false
+    },
+    "matrices": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/matrix_entry" }
+    }
+  },
+  "$defs": {
+    "scalar": {
+      "description": "A value of the matrix element type: number for real T, {re,im} for complex T; null if non-finite.",
+      "anyOf": [
+        { "type": ["number", "null"] },
+        {
+          "type": "object",
+          "required": ["re", "im"],
+          "properties": {
+            "re": { "type": ["number", "null"] },
+            "im": { "type": ["number", "null"] }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "scalar_vector": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scalar" }
+    },
+    "scalar_matrix": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scalar_vector" }
+    },
+    "trial_stats": {
+      "type": "object",
+      "description": "BenchmarkTools trial summary",
+      "required": [
+        "runtime_ns_median", "runtime_ns_min", "runtime_ns_samples"
+      ],
+      "properties": {
+        "runtime_ns_median": { "type": ["number", "null"] },
+        "runtime_ns_min": { "type": ["number", "null"] },
+        "runtime_ns_samples": {
+          "type": "array",
+          "items": { "type": ["number", "null"] }
+        },
+        "bytes_allocated": { "type": "integer", "minimum": 0 },
+        "alloc_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "matrix_entry": {
+      "type": "object",
+      "required": [
+        "file", "n", "symmetric", "norm_inf", "eltype", "match_tol",
+        "n_starts", "starts_benchmark", "oracle", "runs", "coverage"
+      ],
+      "properties": {
+        "file": { "type": "string" },
+        "n": { "type": "integer", "minimum": 1 },
+        "symmetric": { "type": "boolean" },
+        "norm_inf": { "type": ["number", "null"] },
+        "eltype": { "type": "string" },
+        "match_tol": {
+          "type": ["number", "null"],
+          "description": "Tolerance for matching found eigenvalues to oracle eigenvalues"
+        },
+        "n_starts": { "type": "integer", "minimum": 1 },
+        "starts_benchmark": { "$ref": "#/$defs/trial_stats" },
+        "oracle": { "$ref": "#/$defs/oracle_entry" },
+        "runs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/run_entry" }
+        },
+        "coverage": {
+          "type": "object",
+          "description": "Per-method-label coverage summary",
+          "additionalProperties": { "$ref": "#/$defs/coverage_entry" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "oracle_entry": {
+      "type": "object",
+      "required": [
+        "eltype", "runtime_ns_median", "runtime_ns_min",
+        "runtime_ns_samples", "gc_time_ns_max", "bytes_allocated",
+        "alloc_count", "maxrss_delta_bytes", "eigenvalues", "eigenvectors"
+      ],
+      "properties": {
+        "eltype": {
+          "type": "string",
+          "description": "Oracle element type (promoted to >= Float64 precision)"
+        },
+        "runtime_ns_median": { "type": ["number", "null"] },
+        "runtime_ns_min": { "type": ["number", "null"] },
+        "runtime_ns_samples": {
+          "type": "array",
+          "items": { "type": ["number", "null"] }
+        },
+        "gc_time_ns_max": { "type": ["number", "null"] },
+        "bytes_allocated": { "type": "integer", "minimum": 0 },
+        "alloc_count": { "type": "integer", "minimum": 0 },
+        "maxrss_delta_bytes": { "type": "integer" },
+        "eigenvalues": { "$ref": "#/$defs/scalar_vector" },
+        "eigenvectors": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/scalar_matrix" }
+          ],
+          "description": "Column-flattened eigenvector matrix; null when --skip-oracle-vectors"
+        }
+      },
+      "additionalProperties": false
+    },
+    "run_entry": {
+      "type": "object",
+      "description": "One method's results on one matrix: init trial, iterate trial over all starts, per-start eigenpairs",
+      "required": [
+        "method", "label", "params", "n_starts", "init", "totals",
+        "starts_runtime_ns_median",
+        "init_runtime_ns_median", "init_runtime_ns_min",
+        "init_runtime_ns_samples", "init_bytes_allocated",
+        "init_alloc_count",
+        "iterate_runtime_ns_median", "iterate_runtime_ns_min",
+        "iterate_runtime_ns_samples", "gc_time_ns_max",
+        "iterate_bytes_allocated", "iterate_alloc_count",
+        "end_to_end_runtime_ns_median", "maxrss_delta_bytes", "starts"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "description": "Bare algorithm name (parameter-independent)",
+          "enum": [
+            "fixed_shift_lu", "rqi_lu",
+            "rqi_gmres_input_prec", "rqi_gmres_prev_prec"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "method_label: algorithm plus configuration, e.g. 'rqi_gmres_prev_prec (tau=0.1)'"
+        },
+        "params": {
+          "type": "object",
+          "required": [
+            "tol", "maxiter", "inner_reltol", "inner_abstol",
+            "inner_maxiter", "gmres_restart", "power_iters", "seed"
+          ],
+          "properties": {
+            "tol": { "type": ["number", "null"] },
+            "maxiter": { "type": "integer", "minimum": 1 },
+            "inner_reltol": { "type": ["number", "null"] },
+            "inner_abstol": { "type": ["number", "null"] },
+            "inner_maxiter": { "type": "integer", "minimum": 1 },
+            "gmres_restart": { "type": "integer", "minimum": 0 },
+            "power_iters": { "type": "integer", "minimum": 0 },
+            "seed": { "type": "integer" },
+            "tau": {
+              "type": ["number", "null"],
+              "description": "Refactorization threshold; present only for rqi_gmres_prev_prec (null when tau=Inf)"
+            }
+          },
+          "additionalProperties": false
+        },
+        "n_starts": { "type": "integer", "minimum": 1 },
+        "init": {
+          "type": "object",
+          "required": ["n_factorizations", "n_perturbations"],
+          "properties": {
+            "n_factorizations": { "type": "integer", "minimum": 0 },
+            "n_perturbations": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "totals": {
+          "type": "object",
+          "required": [
+            "outer_iterations", "n_shifts", "n_factorizations",
+            "n_perturbations", "gmres_iterations_total",
+            "gmres_stalled_solves"
+          ],
+          "properties": {
+            "outer_iterations": { "type": "integer", "minimum": 0 },
+            "n_shifts": { "type": "integer", "minimum": 0 },
+            "n_factorizations": {
+              "type": "integer", "minimum": 0,
+              "description": "Init's first LU plus all iterate-phase factorizations"
+            },
+            "n_perturbations": { "type": "integer", "minimum": 0 },
+            "gmres_iterations_total": { "type": "integer", "minimum": 0 },
+            "gmres_stalled_solves": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "starts_runtime_ns_median": {
+          "type": ["number", "null"],
+          "description": "Shared search-phase (build_starts) cost, timed once per matrix"
+        },
+        "init_runtime_ns_median": { "type": ["number", "null"] },
+        "init_runtime_ns_min": { "type": ["number", "null"] },
+        "init_runtime_ns_samples": {
+          "type": "array",
+          "items": { "type": ["number", "null"] }
+        },
+        "init_bytes_allocated": { "type": "integer", "minimum": 0 },
+        "init_alloc_count": { "type": "integer", "minimum": 0 },
+        "iterate_runtime_ns_median": {
+          "type": ["number", "null"],
+          "description": "All starts on one reused SolverState, including reset_state! between starts"
+        },
+        "iterate_runtime_ns_min": { "type": ["number", "null"] },
+        "iterate_runtime_ns_samples": {
+          "type": "array",
+          "items": { "type": ["number", "null"] }
+        },
+        "gc_time_ns_max": { "type": ["number", "null"] },
+        "iterate_bytes_allocated": { "type": "integer", "minimum": 0 },
+        "iterate_alloc_count": { "type": "integer", "minimum": 0 },
+        "end_to_end_runtime_ns_median": {
+          "type": ["number", "null"],
+          "description": "starts + init + iterate medians; the honest cost of the whole search"
+        },
+        "maxrss_delta_bytes": { "type": "integer" },
+        "starts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/start_entry" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "start_entry": {
+      "type": "object",
+      "description": "Deterministic result of one (v0, sigma0) start; timing lives at the run level",
+      "required": [
+        "start_index", "sigma0", "converged", "fail_reason",
+        "outer_iterations", "n_shifts", "n_factorizations",
+        "n_perturbations", "gmres_iterations_total",
+        "gmres_stalled_solves", "gmres_iterations_per_step",
+        "eigenvalue", "eigenvector", "final_residual",
+        "residual_history", "shift_history",
+        "oracle_nearest_eigenvalue", "eigenvalue_abs_error",
+        "eigenvector_error"
+      ],
+      "properties": {
+        "start_index": { "type": "integer", "minimum": 0 },
+        "sigma0": { "$ref": "#/$defs/scalar" },
+        "converged": { "type": "boolean" },
+        "fail_reason": {
+          "type": "string",
+          "enum": ["None", "SolveFailed", "Diverged", "MaxIterations"],
+          "description": "RQIFail enum member name; 'None' on clean convergence"
+        },
+        "outer_iterations": { "type": "integer", "minimum": 0 },
+        "n_shifts": { "type": "integer", "minimum": 0 },
+        "n_factorizations": { "type": "integer", "minimum": 0 },
+        "n_perturbations": { "type": "integer", "minimum": 0 },
+        "gmres_iterations_total": { "type": "integer", "minimum": 0 },
+        "gmres_stalled_solves": { "type": "integer", "minimum": 0 },
+        "gmres_iterations_per_step": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "eigenvalue": { "$ref": "#/$defs/scalar" },
+        "eigenvector": { "$ref": "#/$defs/scalar_vector" },
+        "final_residual": { "type": ["number", "null"] },
+        "residual_history": {
+          "type": "array",
+          "items": { "type": ["number", "null"] }
+        },
+        "shift_history": { "$ref": "#/$defs/scalar_vector" },
+        "oracle_nearest_eigenvalue": { "$ref": "#/$defs/scalar" },
+        "eigenvalue_abs_error": { "type": ["number", "null"] },
+        "eigenvector_error": {
+          "type": ["number", "null"],
+          "description": "sin-theta subspace distance to the nearest oracle eigenvector"
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage_entry": {
+      "type": "object",
+      "required": [
+        "n_eigenvalues", "n_found", "coverage",
+        "oracle_indices_found", "eigenvalues_found",
+        "found_largest", "total_runtime_ns_median"
+      ],
+      "properties": {
+        "n_eigenvalues": { "type": "integer", "minimum": 1 },
+        "n_found": { "type": "integer", "minimum": 0 },
+        "coverage": {
+          "type": "number", "minimum": 0, "maximum": 1,
+          "description": "n_found / n_eigenvalues"
+        },
+        "oracle_indices_found": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 },
+          "description": "Sorted unique 1-based indices into oracle.eigenvalues"
+        },
+        "eigenvalues_found": { "$ref": "#/$defs/scalar_vector" },
+        "found_largest": {
+          "type": "boolean",
+          "description": "Whether the eigenvalue with the largest real part was found"
+        },
+        "total_runtime_ns_median": {
+          "type": ["number", "null"],
+          "description": "starts + init + iterate medians for this label"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
