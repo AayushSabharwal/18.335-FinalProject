@@ -48,9 +48,9 @@ function parse_cli()
             arg_type = Int
             default = 10
         "--power-iters"
-            help = "Shifted power iterations used to build v0 for --start-strategy=largest"
+            help = "Cap on shifted power iterations used to build v0 for --start-strategy=largest (stops early once the Rayleigh quotient stagnates)"
             arg_type = Int
-            default = 10
+            default = 200
         "--shift"
             help = "Explicit initial shift σ0 (forces a single start)"
             arg_type = Float64
@@ -163,12 +163,26 @@ function build_starts(strategy, A::AbstractMatrix{T}, args) where {T}
     if strategy == "largest"
         # Power iteration on A - lo·I: its eigenvalue of largest modulus is
         # λmax(A) - lo, so v0 concentrates on the rightmost eigenvector.
+        # Iterate until the Rayleigh quotient stagnates (a converged
+        # dominant eigenvector) or the cap is hit — a fixed small count
+        # under-converges when the spectral gap is small. For a nonsymmetric
+        # matrix whose rightmost eigenvalues are a complex pair, v0 can only
+        # reach the invariant 2-plane and the RQ oscillates; a complex
+        # --eltype is needed for RQI to converge to a complex λ.
         v0 = normalize(rand(MersenneTwister(args["seed"]), T, n))
         B = A - T(lo) * I
+        scale = max(real(hi - lo), eps(real(T)))
+        rq = dot(v0, A * v0)
         for _ in 1:args["power-iters"]
-            v0 = normalize(B * v0)
+            w = B * v0
+            nw = norm(w)
+            nw < eps(real(T)) && break   # λmax == lo, degenerate
+            v0 = w ./ nw
+            rq_new = dot(v0, A * v0)
+            abs(rq_new - rq) <= 1e-8 * scale && (rq = rq_new; break)
+            rq = rq_new
         end
-        return [(v0, T(dot(v0, A * v0)))]
+        return [(v0, T(rq))]
     end
     # grid
     K = args["nstarts"]
@@ -308,13 +322,21 @@ function main()
 
         Toracle = oracle_eltype(T)
         Aoracle = Matrix{Toracle}(A)
+        # Deterministic run (doubles as JIT warmup) + BenchmarkTools trial,
+        # same as the method runs — a fair O(n³) vs O(n³) comparison.
+        F = run_oracle(Aoracle)
         rss0 = Sys.maxrss()
-        oracle_t = @timed F = run_oracle(Aoracle)
+        oracle_trial = run(@benchmarkable(run_oracle($Aoracle));
+                           samples = args["samples"], evals = 1)
         oracle_dict = Dict{String,Any}(
             "eltype" => string(Toracle),
-            "runtime_ns" => oracle_t.time * 1e9,
-            "bytes_allocated" => oracle_t.bytes,
-            "gc_time_ns" => oracle_t.gctime * 1e9,
+            "runtime_ns_median" => median(oracle_trial.times),
+            "runtime_ns_min" => minimum(oracle_trial.times),
+            "runtime_ns_samples" => oracle_trial.times,
+            "gc_time_ns_max" => maximum(oracle_trial.gctimes),
+            "bytes_allocated" => oracle_trial.memory,
+            "alloc_count" => oracle_trial.allocs,
+            "maxrss_delta_bytes" => Sys.maxrss() - rss0,
             "eigenvalues" => _sanitize(collect(F.values)),
             "eigenvectors" => args["skip-oracle-vectors"] ? nothing :
                              _sanitize(Matrix(F.vectors)),
