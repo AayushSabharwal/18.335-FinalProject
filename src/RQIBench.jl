@@ -501,14 +501,15 @@ function build_starts(strategy::String, A::AbstractMatrix{T};
         # --eltype is needed for RQI to converge to a complex λ.
         v0 = rand(Xoshiro(seed), T, n)
         normalize!(v0)
-        B = A - T(lo) * I
         w = similar(v0)
         Av = similar(v0)
         scale = max(real(hi - lo), eps(real(T)))
         mul!(Av, A, v0)
         rq = dot(v0, Av)
         for _ in 1:power_iters
-            mul!(w, B, v0)
+            # (A - lo·I)·v0 without materializing B
+            mul!(w, A, v0)
+            axpy!(-T(lo), v0, w)
             nw = norm(w)
             nw < eps(real(T)) && break   # λmax == lo, degenerate
             @. v0 = w / nw
