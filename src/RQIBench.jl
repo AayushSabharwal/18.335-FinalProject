@@ -102,6 +102,8 @@ mutable struct SolverState{M,C,T,R<:Real}
     inner_maxiter::Int
     counters::RQICounters{T,R}
     stall_next::Bool                    # previous GMRES hit maxiters → refactorize
+    v_work::Vector{T}                   # current iterate (normalize! in place)
+    Av::Vector{T}                       # A*v, then overwritten as the residual
 end
 
 shift_into!(S::AbstractMatrix{T}, A, σ::T) where {T} =
@@ -157,7 +159,8 @@ function init_state(method::Union{FixedShiftLU,RefactorLU}, A::Matrix{T}, σ0::T
     cache = _new_cache(copy(S), copy(v), method)
     cnt.n_factorizations = 1
     return SolverState(method, cache, S, nothing, σ0, σ0, normA,
-                       get(kwargs, :inner_maxiter, 0), cnt, false)
+                       get(kwargs, :inner_maxiter, 0), cnt, false,
+                       similar(v), similar(v))
 end
 
 function init_state(method::Union{GMRESInputPrec,GMRESPrevPrec}, A::Matrix{T},
@@ -174,7 +177,8 @@ function init_state(method::Union{GMRESInputPrec,GMRESPrevPrec}, A::Matrix{T},
                        gmres_restart)
     cnt.n_factorizations = 1
     return SolverState(method, cache, S, F, σ0, σf, normA,
-                       inner_maxiter <= 0 ? n : inner_maxiter, cnt, false)
+                       inner_maxiter <= 0 ? n : inner_maxiter, cnt, false,
+                       similar(v), similar(v))
 end
 
 # ---------------------------------------------------------------------------
@@ -314,18 +318,21 @@ for a single eigenpair and stops when `||Av - σv|| ≤ tol·||A||_∞` (or
 `maxiter` is hit). Splitting this from `init_state` lets the benchmark time
 state/factorization setup separately from the iteration itself.
 """
-function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T},
-                  v0::AbstractVector, σ0::Number;
+function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T}, v0::Vector{T},
+                  σ0::Number;
                   tol::Real = 1e-10, maxiter::Integer = 50) where {T<:Number}
     normA = st.normA
-    v = normalize(Vector{T}(v0))
+    v = normalize!(copyto!(st.v_work, v0))
+    Av = st.Av
     σ = T(σ0)
     cnt = st.counters
+    sizehint!(cnt.shift_history, maxiter)
+    sizehint!(cnt.residual_history, maxiter)
+    sizehint!(cnt.gmres_iters_per_step, maxiter)
 
     converged = false
     fail_reason = nothing
     res = normA
-    Av = similar(v)
     for it in 1:maxiter
         cnt.outer_iters = it
         w, inner_iters, ok = solve_step!(st, A, σ, v)
@@ -340,10 +347,12 @@ function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T},
             fail_reason = "diverged (nonfinite or zero iterate)"
             break
         end
-        v = normalize(w ./ nw)
+        copyto!(v, w)
+        normalize!(v)
         mul!(Av, A, v)
         σ = dot(v, Av)
-        res = norm(Av .- σ .* v)
+        axpy!(-σ, v, Av)         # Av -= σ·v → Av now holds the residual
+        res = norm(Av)
         push!(cnt.shift_history, σ)
         push!(cnt.residual_history, res)
         if res <= tol * normA
@@ -352,7 +361,8 @@ function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T},
         end
     end
 
-    return RQIResult(method_tag(st.method), σ, v, res, converged, fail_reason, cnt)
+    return RQIResult(method_tag(st.method), σ, copy(v), res, converged,
+                     fail_reason, cnt)
 end
 
 """
