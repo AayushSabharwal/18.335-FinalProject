@@ -27,6 +27,11 @@ julia --project=. bench/run_benchmark.jl \
 julia --project=. bench/run_benchmark.jl \
     --matrices matrices/ --out results/bench_f32.json \
     --start-strategy largest --eltype Float32 --tol 1e-5 --inner-reltol 1e-6
+
+# full-spectrum experiment (deflated RQI per method):
+julia --project=. bench/run_benchmark.jl \
+    --matrices matrices/ --out results/spectrum.json \
+    --start-strategy spectrum --taus 0,0.01,0.1,1
 ```
 
 Quick sanity check (all methods converge on a small symmetric matrix):

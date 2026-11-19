@@ -158,6 +158,14 @@ Each `run_rqi` still computes one eigenpair. To target the analysis goal
 multiple starts per (matrix, method):
 
 - `--start-strategy rq`: single start, σ0 = RQ(v0) (original behavior).
+- `--start-strategy spectrum`: full spectrum via repeated deflated RQI —
+  each attempt starts from a deflated random v0 and the iterate is
+  reorthogonalized (CGS2) against converged eigenvectors every step.
+  Accepted if converged and non-duplicate (within match_tol); bounded by
+  `--max-attempts` (default 3n). `FixedShiftLU` shares ONE `init_state` /
+  LU across all attempts (extreme reuse); `RefactorLU` refactorizes per
+  shift per eigenpair (O(n⁴) overall). Deflation is exact for symmetric
+  `A`, heuristic for nonsymmetric (right eigenvectors aren't orthogonal).
 - `--start-strategy grid`: `--nstarts` σ0's spread evenly over the
   Gershgorin real-axis range (no oracle information used).
 - `--start-strategy largest`: v0 built from `--power-iters` shifted power

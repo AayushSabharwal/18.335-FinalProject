@@ -39,10 +39,10 @@ function parse_cli()
             arg_type = String
             default = "Float64"
         "--start-strategy"
-            help = "rq: single start at σ0=RQ(v0); grid: nstarts shifts spread over the Gershgorin range; largest: shifted power iterations build v0 near the rightmost eigenvector, σ0=RQ(v0)"
+            help = "rq: single start at σ0=RQ(v0); grid: nstarts shifts spread over the Gershgorin range; largest: shifted power iterations build v0 near the rightmost eigenvector, σ0=RQ(v0); spectrum: deflated runs find all eigenpairs"
             arg_type = String
             default = "rq"
-            range_tester = x -> x in ("rq", "grid", "largest")
+            range_tester = x -> x in ("rq", "grid", "largest", "spectrum")
         "--nstarts"
             help = "Number of starts for --start-strategy=grid"
             arg_type = Int
@@ -51,6 +51,13 @@ function parse_cli()
             help = "Shifted power iterations used to build v0 for --start-strategy=largest"
             arg_type = Int
             default = 10
+        "--max-attempts"
+            help = "Maximum deflated attempts for --start-strategy=spectrum (0 → 3n)"
+            arg_type = Int
+            default = 0
+        "--skip-spectrum-vectors"
+            help = "Do not serialize the per-method spectrum eigenvectors"
+            action = :store_true
         "--shift"
             help = "Explicit initial shift σ0 (forces a single start)"
             arg_type = Float64
@@ -267,6 +274,65 @@ function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol
     return out
 end
 
+"""Serialize a full-spectrum run: totals, per-attempt rows, coverage vs oracle."""
+function spectrum_entry_dict(sr::SpectrumResult, label, trial, maxrss_delta,
+                             oracle_F, match_tol, store_vectors)
+    t = sr.totals
+    matched = Int[]
+    errs = real(eltype(sr.eigenvalues))[]
+    for λ in sr.eigenvalues
+        i, λo, _ = nearest_oracle(oracle_F, λ)
+        push!(matched, i)
+        push!(errs, abs(λ - λo))
+    end
+    ilargest = argmax(real.(oracle_F.values))
+    attempts = [Dict{String,Any}(
+        "eigenvalue" => _sanitize(r.eigenvalue),
+        "converged" => r.converged,
+        "accepted" => acc,
+        "outer_iterations" => r.counters.outer_iters,
+        "n_shifts" => r.counters.n_shifts,
+        "n_factorizations" => r.counters.n_factorizations,
+        "gmres_iterations_total" => r.counters.gmres_iters_total,
+        "final_residual" => _sanitize(r.final_residual),
+    ) for (r, acc) in zip(sr.attempts, sr.accepted)]
+    return _sanitize(Dict{String,Any}(
+        "method" => sr.method,
+        "label" => label,
+        "eigenvalues" => sr.eigenvalues,
+        "eigenvectors" => store_vectors ? sr.eigenvectors : nothing,
+        "n_target" => sr.n_target,
+        "n_found" => length(sr.eigenvalues),
+        "n_attempts" => length(sr.attempts),
+        "converged_all" => length(sr.eigenvalues) == sr.n_target,
+        "totals" => Dict{String,Any}(
+            "outer_iterations" => t.outer_iters,
+            "n_shifts" => t.n_shifts,
+            "n_factorizations" => t.n_factorizations,
+            "n_perturbations" => t.n_perturbations,
+            "gmres_iterations_total" => t.gmres_iters_total,
+            "gmres_stalled_solves" => t.gmres_stalled,
+        ),
+        "attempts" => attempts,
+        "runtime_ns_median" => median(trial.times),
+        "runtime_ns_min" => minimum(trial.times),
+        "runtime_ns_samples" => trial.times,
+        "gc_time_ns_max" => maximum(trial.gctimes),
+        "bytes_allocated" => trial.memory,
+        "alloc_count" => trial.allocs,
+        "maxrss_delta_bytes" => maxrss_delta,
+        "coverage" => Dict{String,Any}(
+            "n_eigenvalues" => length(oracle_F.values),
+            "n_found" => length(sr.eigenvalues),
+            "coverage" => length(sr.eigenvalues) / length(oracle_F.values),
+            "oracle_indices_found" => sort!(matched),
+            "found_largest" => ilargest in matched,
+            "eigenvalue_abs_errors" => errs,
+            "max_eigenvalue_abs_error" => isempty(errs) ? NaN : maximum(errs),
+        ),
+    ))
+end
+
 function main()
     args = parse_cli()
     T = get(ELTYPE_MAP, args["eltype"], nothing)
@@ -301,7 +367,9 @@ function main()
         A = load_matrix(file, T)
         n = size(A, 1)
         normA = opnorm(A, Inf)
-        starts = build_starts(args["start-strategy"], A, args)
+        spectrum_mode = args["start-strategy"] == "spectrum"
+        starts = spectrum_mode ? Tuple{Vector{T},T}[] :
+                 build_starts(args["start-strategy"], A, args)
         match_tol = isnan(args["match-tol"]) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
             args["match-tol"]
@@ -336,6 +404,42 @@ function main()
         results = Tuple{String,RQIResult}[]
         total_times = Dict{String,Float64}()
 
+        if spectrum_mode
+            entry["spectrum_runs"] = Any[]
+            for m in methods
+                label = method_label(m)
+                print(stderr, "   spectrum $label ... ")
+                sr = run_rqi_spectrum(m, A; seed = args["seed"],
+                                      tol = args["tol"],
+                                      maxiter = args["maxiter"],
+                                      inner_reltol = args["inner-reltol"],
+                                      inner_abstol = args["inner-abstol"],
+                                      inner_maxiter = args["inner-maxiter"],
+                                      gmres_restart = args["gmres-restart"],
+                                      match_tol = match_tol,
+                                      max_attempts = args["max-attempts"])
+                rss0 = Sys.maxrss()
+                trial = run(@benchmarkable(
+                    run_rqi_spectrum($m, $A; seed = $(args["seed"]),
+                            tol = $(args["tol"]),
+                            maxiter = $(args["maxiter"]),
+                            inner_reltol = $(args["inner-reltol"]),
+                            inner_abstol = $(args["inner-abstol"]),
+                            inner_maxiter = $(args["inner-maxiter"]),
+                            gmres_restart = $(args["gmres-restart"]),
+                            match_tol = $match_tol,
+                            max_attempts = $(args["max-attempts"]))
+                ); samples = args["samples"], evals = 1)
+                push!(entry["spectrum_runs"],
+                      spectrum_entry_dict(sr, label, trial, Sys.maxrss() - rss0,
+                                          F, match_tol,
+                                          !args["skip-spectrum-vectors"]))
+                println(stderr, "$(length(sr.eigenvalues))/$(sr.n_target) found, " *
+                              "attempts=$(length(sr.attempts)) " *
+                              "facs=$(sr.totals.n_factorizations) " *
+                              "gmres=$(sr.totals.gmres_iters_total)")
+            end
+        else
         for (si, (v0, σ0)) in enumerate(starts), m in methods
             label = method_label(m)
             print(stderr, "   start $si/$(length(starts)) $label ... ")
@@ -377,6 +481,7 @@ function main()
                           "iters=$(result.counters.outer_iters) " *
                           "facs=$(result.counters.n_factorizations) " *
                           "λ=$(result.eigenvalue)")
+        end
         end
 
         entry["coverage"] = _sanitize(coverage_summary(results, F, match_tol,
