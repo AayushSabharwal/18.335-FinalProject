@@ -361,23 +361,27 @@ eigenvalue with the largest real part was found.
 function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol,
                           total_times::Dict{String,Float64})
     labels = unique(first.(results))
-    ilargest = argmax(real.(F.values))
+    # Generalized pencils with singular B produce infinite eigenvalues that
+    # RQI can never hit — coverage is over the finite spectrum.
+    finite_idx = findall(isfinite, F.values)
+    n_finite = length(finite_idx)
+    ilargest = finite_idx[argmax(real.(F.values[finite_idx]))]
     out = Dict{String,Any}()
     for lab in labels
         idxs = Int[]
         for (l, r) in results
             (l == lab && r.converged) || continue
-            for (i, λ) in enumerate(F.values)
-                if abs(r.eigenvalue - λ) <= match_tol
+            for i in finite_idx
+                if abs(r.eigenvalue - F.values[i]) <= match_tol
                     push!(idxs, i)
                 end
             end
         end
         idxs = sort!(unique!(idxs))
         out[lab] = Dict{String,Any}(
-            "n_eigenvalues" => length(F.values),
+            "n_eigenvalues" => n_finite,
             "n_found" => length(idxs),
-            "coverage" => length(idxs) / length(F.values),
+            "coverage" => length(idxs) / n_finite,
             "oracle_indices_found" => idxs,
             "eigenvalues_found" => _sanitize(F.values[idxs]),
             "found_largest" => ilargest in idxs,
@@ -423,7 +427,8 @@ function main()
 
     for file in files
         println(stderr, "== $file")
-        A = load_matrix(file, T)
+        A, B = load_problem(file, T)
+        Bm = B === nothing ? I : B        # I ⇔ standard problem
         n = size(A, 1)
         normA = opnorm(A, Inf)
         # Search phase: compute the starts once per matrix (shared by all
@@ -433,20 +438,20 @@ function main()
         # is type-stable in the timed path.
         strategy = args["start-strategy"]
         shift_arg = isnan(args["shift"]) ? nothing : T(args["shift"])
-        starts = build_starts(strategy, A;
+        starts = build_starts(strategy, A, Bm;
                               seed = args["seed"],
                               nstarts = args["nstarts"],
                               power_iters = args["power-iters"],
                               shift = shift_arg)
         starts_trial = run(@benchmarkable(
-            build_starts($strategy, $A;
+            build_starts($strategy, $A, $Bm;
                          seed = $(args["seed"]),
                          nstarts = $(args["nstarts"]),
                          power_iters = $(args["power-iters"]),
                          shift = $shift_arg)
         ); samples = args["samples"], evals = 1)
         starts_flops = measure_flops() do
-            build_starts(strategy, A; seed = args["seed"],
+            build_starts(strategy, A, Bm; seed = args["seed"],
                          nstarts = args["nstarts"],
                          power_iters = args["power-iters"],
                          shift = shift_arg)
@@ -457,13 +462,18 @@ function main()
 
         Toracle = oracle_eltype(T)
         Aoracle = Matrix{Toracle}(A)
+        Boracle = B === nothing ? nothing : Matrix{Toracle}(B)
         # Deterministic run (doubles as JIT warmup) + BenchmarkTools trial,
         # same as the method runs — a fair O(n³) vs O(n³) comparison.
-        F = run_oracle(Aoracle)
+        F = B === nothing ? run_oracle(Aoracle) : run_oracle(Aoracle, Boracle)
         rss0 = Sys.maxrss()
-        oracle_trial = run(@benchmarkable(run_oracle($Aoracle));
+        oracle_trial = run(@benchmarkable(
+            $B === nothing ? run_oracle($Aoracle) :
+                             run_oracle($Aoracle, $Boracle));
                            samples = args["samples"], evals = 1)
-        oracle_flops = measure_flops(() -> run_oracle(Aoracle))
+        oracle_flops = measure_flops() do
+            B === nothing ? run_oracle(Aoracle) : run_oracle(Aoracle, Boracle)
+        end
         oracle_dict = Dict{String,Any}(
             "eltype" => string(Toracle),
             "flops" => oracle_flops,
@@ -482,6 +492,7 @@ function main()
         entry = Dict{String,Any}(
             "file" => file,
             "n" => n,
+            "generalized" => B !== nothing,
             "symmetric" => issymmetric(A),
             "norm_inf" => normA,
             "eltype" => string(T),
@@ -524,7 +535,7 @@ function main()
             # Deterministic pass: one init_state, then ALL starts on the
             # same state (reset between starts) — mirrors the timed loop.
             rss0 = Sys.maxrss()
-            st = init_state(m, A, σ0_init, v0_init, normA;
+            st = init_state(m, A, Bm, σ0_init, v0_init, normA;
                             inner_reltol = args["inner-reltol"],
                             inner_abstol = args["inner-abstol"],
                             inner_maxiter = args["inner-maxiter"],
@@ -533,8 +544,8 @@ function main()
                         n_perturbations = st.counters.n_perturbations)
             mresults = RQIResult[]
             for (v0, σ0) in starts
-                reset_state!(st, A, σ0)
-                push!(mresults, run_rqi!(st, A, v0, σ0;
+                reset_state!(st, A, Bm, σ0)
+                push!(mresults, run_rqi!(st, A, Bm, v0, σ0;
                                         tol = args["tol"],
                                         maxiter = args["maxiter"]))
             end
@@ -542,7 +553,7 @@ function main()
 
             # Init phase: state + first factorization.
             init_trial = run(@benchmarkable(
-                init_state($m, $A, $σ0_init, $v0_init, $normA;
+                init_state($m, $A, $Bm, $σ0_init, $v0_init, $normA;
                            inner_reltol = $(args["inner-reltol"]),
                            inner_abstol = $(args["inner-abstol"]),
                            inner_maxiter = $(args["inner-maxiter"]),
@@ -552,13 +563,13 @@ function main()
             # reset_state! between them; setup= rebuilds the state untimed.
             trial = run(@benchmarkable(begin
                     for (v0_j, σ0_j) in $starts
-                        reset_state!(st_, $A, σ0_j)
-                        run_rqi!(st_, $A, v0_j, σ0_j;
+                        reset_state!(st_, $A, $Bm, σ0_j)
+                        run_rqi!(st_, $A, $Bm, v0_j, σ0_j;
                                  tol = $(args["tol"]),
                                  maxiter = $(args["maxiter"]))
                     end
                 end;
-                setup = (st_ = init_state($m, $A, $σ0_init, $v0_init, $normA;
+                setup = (st_ = init_state($m, $A, $Bm, $σ0_init, $v0_init, $normA;
                            inner_reltol = $(args["inner-reltol"]),
                            inner_abstol = $(args["inner-abstol"]),
                            inner_maxiter = $(args["inner-maxiter"]),
@@ -568,21 +579,21 @@ function main()
             # FLOP instrumentation (Linux + LIKWID.jl only): one dedicated
             # pass per phase, measured independently of the timing trials.
             init_flops = measure_flops() do
-                init_state(m, A, σ0_init, v0_init, normA;
+                init_state(m, A, Bm, σ0_init, v0_init, normA;
                            inner_reltol = args["inner-reltol"],
                            inner_abstol = args["inner-abstol"],
                            inner_maxiter = args["inner-maxiter"],
                            gmres_restart = args["gmres-restart"])
             end
             iterate_flops = measure_flops() do
-                st_f = init_state(m, A, σ0_init, v0_init, normA;
+                st_f = init_state(m, A, Bm, σ0_init, v0_init, normA;
                                   inner_reltol = args["inner-reltol"],
                                   inner_abstol = args["inner-abstol"],
                                   inner_maxiter = args["inner-maxiter"],
                                   gmres_restart = args["gmres-restart"])
                 for (v0_j, σ0_j) in starts
-                    reset_state!(st_f, A, σ0_j)
-                    run_rqi!(st_f, A, v0_j, σ0_j;
+                    reset_state!(st_f, A, Bm, σ0_j)
+                    run_rqi!(st_f, A, Bm, v0_j, σ0_j;
                              tol = args["tol"], maxiter = args["maxiter"])
                 end
             end

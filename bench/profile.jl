@@ -148,10 +148,10 @@ function main()
         normA = opnorm(A, Inf)
         # iterate phase only: state built once (untimed), reset per rep —
         # the same loop the benchmark times
-        st = init_state(m, A, σ0, v0, normA;
+        st = init_state(m, A, I, σ0, v0, normA;
                         inner_reltol = 1e-10, inner_abstol = 0.0,
                         inner_maxiter = 0, gmres_restart = 0)
-        iter() = (reset_state!(st, A, σ0); run_rqi!(st, A, v0, σ0))
+        iter() = (reset_state!(st, A, I, σ0); run_rqi!(st, A, I, v0, σ0))
         r = iter()                                    # warmup + measure
         t1 = @elapsed iter()
         reps = clamp(ceil(Int, 2.5 / max(t1, 1e-4)), 3, 20000)

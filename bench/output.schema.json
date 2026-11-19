@@ -168,12 +168,17 @@
     "matrix_entry": {
       "type": "object",
       "required": [
-        "file", "n", "symmetric", "norm_inf", "eltype", "match_tol",
-        "n_starts", "starts_benchmark", "oracle", "runs", "coverage"
+        "file", "n", "generalized", "symmetric", "norm_inf", "eltype",
+        "match_tol", "n_starts", "starts_benchmark", "oracle", "runs",
+        "coverage"
       ],
       "properties": {
         "file": { "type": "string" },
         "n": { "type": "integer", "minimum": 1 },
+        "generalized": {
+          "type": "boolean",
+          "description": "true when the input was a 2n×n stacked pencil [A; B] and all solves ran on the generalized problem Ax = λBx"
+        },
         "symmetric": { "type": "boolean" },
         "norm_inf": { "type": ["number", "null"] },
         "eltype": { "type": "string" },
