@@ -247,59 +247,6 @@ function build_methods(methods_spec::String, taus_spec::String)
     return methods
 end
 
-"""
-    build_starts(strategy, A; seed, nstarts, power_iters, shift) -> Vector{Tuple{Vector{T}, T}}
-
-Initial (v0, σ0) pairs. `grid` spreads `nstarts` shifts evenly across the
-Gershgorin real-axis range; `largest` builds `v0` from `power_iters`
-shifted power iterations on `A - lo*I` (whose dominant eigenpair is the one
-with the largest real part of `A`) and starts at `σ0 = RQ(v0)`. An explicit
-`shift` always forces a single start. Takes only concrete values — the CLI
-Dict is unpacked once at the call site so the (timed) search phase is
-type-stable.
-"""
-function build_starts(strategy::String, A::AbstractMatrix{T};
-                      seed::Integer, nstarts::Integer, power_iters::Integer,
-                      shift::Union{Nothing,T} = nothing) where {T}
-    n = size(A, 1)
-    if shift !== nothing || strategy == "rq"
-        v0 = normalize(rand(MersenneTwister(seed), T, n))
-        σ0 = shift === nothing ? dot(v0, A * v0) : T(shift)
-        return [(v0, T(σ0))]
-    end
-    lo, hi = gershgorin_bounds(A)
-    if strategy == "largest"
-        # Power iteration on A - lo·I: its eigenvalue of largest modulus is
-        # λmax(A) - lo, so v0 concentrates on the rightmost eigenvector.
-        # Iterate until the Rayleigh quotient stagnates (a converged
-        # dominant eigenvector) or the cap is hit — a fixed small count
-        # under-converges when the spectral gap is small. For a nonsymmetric
-        # matrix whose rightmost eigenvalues are a complex pair, v0 can only
-        # reach the invariant 2-plane and the RQ oscillates; a complex
-        # --eltype is needed for RQI to converge to a complex λ.
-        v0 = normalize(rand(MersenneTwister(seed), T, n))
-        B = A - T(lo) * I
-        scale = max(real(hi - lo), eps(real(T)))
-        rq = dot(v0, A * v0)
-        for _ in 1:power_iters
-            w = B * v0
-            nw = norm(w)
-            nw < eps(real(T)) && break   # λmax == lo, degenerate
-            v0 = w ./ nw
-            rq_new = dot(v0, A * v0)
-            abs(rq_new - rq) <= 1e-8 * scale && (rq = rq_new; break)
-            rq = rq_new
-        end
-        return [(v0, T(rq))]
-    end
-    strategy != "grid" && error("unknown start strategy: $strategy")
-    K = nstarts
-    K < 1 && error("nstarts must be ≥ 1")
-    σs = K == 1 ? [(lo + hi) / 2] : collect(range(lo, hi, K))
-    return [(normalize(rand(MersenneTwister(seed + 1000j), T, n)), T(σ))
-            for (j, σ) in enumerate(σs)]
-end
-
 """Element type for the oracle: at least Float64 precision."""
 oracle_eltype(::Type{T}) where {T} =
     real(T) == BigFloat ? T : (T <: Complex ? ComplexF64 : Float64)
