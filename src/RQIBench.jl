@@ -461,8 +461,8 @@ Real-axis bounds on the spectrum from the Gershgorin discs
 function gershgorin_bounds(A::AbstractMatrix)
     d = diag(A)
     lo, hi = Inf, -Inf
-    for i in axes(A, 1)
-        r = sum(abs, A[i, :]) - abs(d[i])
+    for (i, row) in enumerate(eachrow(A))
+        r = sum(abs, row) - abs(d[i])
         lo = min(lo, real(d[i]) - r)
         hi = max(hi, real(d[i]) + r)
     end
@@ -485,7 +485,7 @@ function build_starts(strategy::String, A::AbstractMatrix{T};
                       shift::Union{Nothing,T} = nothing) where {T}
     n = size(A, 1)
     if shift !== nothing || strategy == "rq"
-        v0 = normalize(rand(MersenneTwister(seed), T, n))
+        v0 = normalize(rand(Xoshiro(seed), T, n))
         σ0 = shift === nothing ? dot(v0, A * v0) : T(shift)
         return [(v0, T(σ0))]
     end
@@ -499,16 +499,21 @@ function build_starts(strategy::String, A::AbstractMatrix{T};
         # matrix whose rightmost eigenvalues are a complex pair, v0 can only
         # reach the invariant 2-plane and the RQ oscillates; a complex
         # --eltype is needed for RQI to converge to a complex λ.
-        v0 = normalize(rand(MersenneTwister(seed), T, n))
+        v0 = rand(Xoshiro(seed), T, n)
+        normalize!(v0)
         B = A - T(lo) * I
+        w = similar(v0)
+        Av = similar(v0)
         scale = max(real(hi - lo), eps(real(T)))
-        rq = dot(v0, A * v0)
+        mul!(Av, A, v0)
+        rq = dot(v0, Av)
         for _ in 1:power_iters
-            w = B * v0
+            mul!(w, B, v0)
             nw = norm(w)
             nw < eps(real(T)) && break   # λmax == lo, degenerate
-            v0 = w ./ nw
-            rq_new = dot(v0, A * v0)
+            @. v0 = w / nw
+            mul!(Av, A, v0)
+            rq_new = dot(v0, Av)
             abs(rq_new - rq) <= 1e-8 * scale && (rq = rq_new; break)
             rq = rq_new
         end
