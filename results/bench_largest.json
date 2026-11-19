@@ -13,7 +13,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 19749.0
+                    "total_runtime_ns_median": 15834.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.04,
@@ -26,7 +26,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 20667.0
+                    "total_runtime_ns_median": 16999.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.04,
@@ -39,7 +39,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 20625.0
+                    "total_runtime_ns_median": 17333.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.04,
@@ -52,7 +52,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 20291.0
+                    "total_runtime_ns_median": 16542.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.04,
@@ -65,7 +65,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 20499.0
+                    "total_runtime_ns_median": 16917.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.04,
@@ -78,7 +78,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 20750.0
+                    "total_runtime_ns_median": 16375.0
                 },
                 "rqi_lu": {
                     "coverage": 0.04,
@@ -91,7 +91,7 @@
                     "oracle_indices_found": [
                         25
                     ],
-                    "total_runtime_ns_median": 19708.0
+                    "total_runtime_ns_median": 15791.0
                 }
             },
             "eltype": "Float64",
@@ -811,20 +811,20 @@
                 "eltype": "Float64",
                 "flops": null,
                 "gc_time_ns_max": 0.0,
-                "maxrss_delta_bytes": 245760,
-                "runtime_ns_median": 49708.0,
-                "runtime_ns_min": 47042.0,
+                "maxrss_delta_bytes": 278528,
+                "runtime_ns_median": 43333.0,
+                "runtime_ns_min": 42333.0,
                 "runtime_ns_samples": [
-                    92958.0,
-                    51625.0,
-                    48042.0,
-                    47042.0,
-                    49708.0
+                    70709.0,
+                    46667.0,
+                    43333.0,
+                    42625.0,
+                    42333.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 19749.0,
+                    "end_to_end_runtime_ns_median": 15834.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -833,29 +833,29 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 17952,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1333.0,
-                    "init_runtime_ns_min": 1250.0,
+                    "init_runtime_ns_median": 1084.0,
+                    "init_runtime_ns_min": 875.0,
                     "init_runtime_ns_samples": [
-                        8833.0,
-                        1916.0,
-                        1333.0,
-                        1292.0,
-                        1250.0
+                        6292.0,
+                        1291.0,
+                        875.0,
+                        1084.0,
+                        1042.0
                     ],
                     "iterate_alloc_count": 14,
                     "iterate_bytes_allocated": 7232,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3416.0,
-                    "iterate_runtime_ns_min": 2875.0,
+                    "iterate_runtime_ns_median": 3042.0,
+                    "iterate_runtime_ns_min": 2584.0,
                     "iterate_runtime_ns_samples": [
-                        16458.0,
-                        4459.0,
-                        3416.0,
-                        2958.0,
-                        2875.0
+                        15000.0,
+                        3917.0,
+                        3042.0,
+                        2917.0,
+                        2584.0
                     ],
                     "label": "fixed_shift_lu",
-                    "maxrss_delta_bytes": 196608,
+                    "maxrss_delta_bytes": 262144,
                     "method": "fixed_shift_lu",
                     "n_starts": 1,
                     "params": {
@@ -865,44 +865,45 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.0,
-                            "eigenvalue_abs_error": 3.552713678800501e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732345,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.025094606601044685,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138958,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.25823417039606694,
-                                0.027509843419760347,
-                                0.07859054790326504,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329345,
-                                0.28944466731428886,
-                                -0.24137793799739568,
-                                0.04253523015423757,
-                                0.2070431631350975,
-                                -0.09050151824904613
+                                0.21103650254490813,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.02509460666365126,
+                                -0.2619699439854012,
+                                -0.341940082697684,
+                                -0.29757536916311866,
+                                -0.06461975133293879,
+                                -0.3745794167950482,
+                                0.05720034787072809,
+                                -0.03266478701227392,
+                                -0.007237283456711538,
+                                -0.013617137734580427,
+                                0.25823417010558364,
+                                -0.027509843488441998,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173957,
+                                0.24098688085174239,
+                                -0.28944466729676427,
+                                0.2413779381479958,
+                                -0.04253523017950876,
+                                -0.20704316316013474,
+                                0.09050151825384754
                             ],
-                            "eigenvector_error": 2.1073424255447017e-8,
+                            "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272098062866427e-9,
+                            "final_residual": 2.52204284525855e-10,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -912,17 +913,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272098062866427e-9
+                                2.52204284525855e-10
                             ],
                             "shift_history": [
-                                20.0
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -933,7 +934,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 19708.0,
+                    "end_to_end_runtime_ns_median": 15791.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -942,29 +943,29 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 17952,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1041.0,
-                    "init_runtime_ns_min": 541.0,
+                    "init_runtime_ns_median": 833.0,
+                    "init_runtime_ns_min": 542.0,
                     "init_runtime_ns_samples": [
-                        5208.0,
-                        1041.0,
-                        1084.0,
+                        5584.0,
+                        959.0,
+                        833.0,
                         542.0,
-                        541.0
+                        625.0
                     ],
                     "iterate_alloc_count": 16,
                     "iterate_bytes_allocated": 7488,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3667.0,
-                    "iterate_runtime_ns_min": 3000.0,
+                    "iterate_runtime_ns_median": 3250.0,
+                    "iterate_runtime_ns_min": 2833.0,
                     "iterate_runtime_ns_samples": [
-                        16250.0,
-                        4542.0,
-                        3667.0,
-                        3167.0,
-                        3000.0
+                        14875.0,
+                        4250.0,
+                        3250.0,
+                        2833.0,
+                        2916.0
                     ],
                     "label": "rqi_lu",
-                    "maxrss_delta_bytes": 0,
+                    "maxrss_delta_bytes": 114688,
                     "method": "rqi_lu",
                     "n_starts": 1,
                     "params": {
@@ -974,44 +975,45 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.0,
-                            "eigenvalue_abs_error": 3.552713678800501e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732345,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.025094606601044685,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138958,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.25823417039606694,
-                                0.027509843419760347,
-                                0.07859054790326504,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329345,
-                                0.28944466731428886,
-                                -0.24137793799739568,
-                                0.04253523015423757,
-                                0.2070431631350975,
-                                -0.09050151824904613
+                                0.21103650254490813,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.02509460666365126,
+                                -0.2619699439854012,
+                                -0.341940082697684,
+                                -0.29757536916311866,
+                                -0.06461975133293879,
+                                -0.3745794167950482,
+                                0.05720034787072809,
+                                -0.03266478701227392,
+                                -0.007237283456711538,
+                                -0.013617137734580427,
+                                0.25823417010558364,
+                                -0.027509843488441998,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173957,
+                                0.24098688085174239,
+                                -0.28944466729676427,
+                                0.2413779381479958,
+                                -0.04253523017950876,
+                                -0.20704316316013474,
+                                0.09050151825384754
                             ],
-                            "eigenvector_error": 2.1073424255447017e-8,
+                            "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272098062866427e-9,
+                            "final_residual": 2.52204284525855e-10,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -1021,17 +1023,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272098062866427e-9
+                                2.52204284525855e-10
                             ],
                             "shift_history": [
-                                20.0
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -1042,7 +1044,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 20667.0,
+                    "end_to_end_runtime_ns_median": 16999.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1051,29 +1053,29 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3500.0,
-                    "init_runtime_ns_min": 2750.0,
+                    "init_runtime_ns_median": 3291.0,
+                    "init_runtime_ns_min": 2791.0,
                     "init_runtime_ns_samples": [
-                        15666.0,
-                        4458.0,
-                        3500.0,
-                        2916.0,
-                        2750.0
+                        14750.0,
+                        4083.0,
+                        3291.0,
+                        2791.0,
+                        3042.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2167.0,
-                    "iterate_runtime_ns_min": 1875.0,
+                    "iterate_runtime_ns_median": 2000.0,
+                    "iterate_runtime_ns_min": 1708.0,
                     "iterate_runtime_ns_samples": [
-                        10333.0,
-                        2166.0,
-                        2750.0,
-                        1875.0,
-                        2167.0
+                        10208.0,
+                        1959.0,
+                        2000.0,
+                        1708.0,
+                        2041.0
                     ],
                     "label": "rqi_gmres_input_prec",
-                    "maxrss_delta_bytes": 0,
+                    "maxrss_delta_bytes": 98304,
                     "method": "rqi_gmres_input_prec",
                     "n_starts": 1,
                     "params": {
@@ -1083,44 +1085,45 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.000000000000004,
-                            "eigenvalue_abs_error": 3.197442310920451e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732343,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.02509460660104468,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138959,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.2582341703960669,
-                                0.02750984341976035,
-                                0.07859054790326506,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329342,
-                                0.28944466731428886,
-                                -0.2413779379973957,
-                                0.04253523015423757,
-                                0.20704316313509746,
-                                -0.09050151824904615
+                                0.2110365025449081,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.025094606663651257,
+                                -0.26196994398540113,
+                                -0.34194008269768394,
+                                -0.2975753691631186,
+                                -0.06461975133293878,
+                                -0.37457941679504814,
+                                0.057200347870728085,
+                                -0.03266478701227392,
+                                -0.007237283456711537,
+                                -0.013617137734580427,
+                                0.2582341701055836,
+                                -0.027509843488441994,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173956,
+                                0.24098688085174236,
+                                -0.28944466729676427,
+                                0.24137793814799577,
+                                -0.04253523017950877,
+                                -0.2070431631601347,
+                                0.09050151825384754
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272100356382282e-9,
+                            "final_residual": 2.522043213940577e-10,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -1132,17 +1135,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272100356382282e-9
+                                2.522043213940577e-10
                             ],
                             "shift_history": [
-                                20.000000000000004
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1153,7 +1156,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 20625.0,
+                    "end_to_end_runtime_ns_median": 17333.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1162,29 +1165,29 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3333.0,
-                    "init_runtime_ns_min": 2792.0,
+                    "init_runtime_ns_median": 3458.0,
+                    "init_runtime_ns_min": 3083.0,
                     "init_runtime_ns_samples": [
-                        15541.0,
-                        4167.0,
-                        3333.0,
-                        3042.0,
-                        2792.0
+                        14583.0,
+                        4000.0,
+                        3458.0,
+                        3083.0,
+                        3375.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2292.0,
-                    "iterate_runtime_ns_min": 1875.0,
+                    "iterate_runtime_ns_median": 2167.0,
+                    "iterate_runtime_ns_min": 1625.0,
                     "iterate_runtime_ns_samples": [
-                        11459.0,
-                        2292.0,
-                        2000.0,
+                        8791.0,
                         1875.0,
-                        3292.0
+                        2250.0,
+                        1625.0,
+                        2167.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
-                    "maxrss_delta_bytes": 0,
+                    "maxrss_delta_bytes": 98304,
                     "method": "rqi_gmres_prev_prec",
                     "n_starts": 1,
                     "params": {
@@ -1194,6 +1197,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.0,
                         "tol": 1.0e-10
@@ -1201,38 +1205,38 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.000000000000004,
-                            "eigenvalue_abs_error": 3.197442310920451e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732343,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.02509460660104468,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138959,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.2582341703960669,
-                                0.02750984341976035,
-                                0.07859054790326506,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329342,
-                                0.28944466731428886,
-                                -0.2413779379973957,
-                                0.04253523015423757,
-                                0.20704316313509746,
-                                -0.09050151824904615
+                                0.2110365025449081,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.025094606663651257,
+                                -0.26196994398540113,
+                                -0.34194008269768394,
+                                -0.2975753691631186,
+                                -0.06461975133293878,
+                                -0.37457941679504814,
+                                0.057200347870728085,
+                                -0.03266478701227392,
+                                -0.007237283456711537,
+                                -0.013617137734580427,
+                                0.2582341701055836,
+                                -0.027509843488441994,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173956,
+                                0.24098688085174236,
+                                -0.28944466729676427,
+                                0.24137793814799577,
+                                -0.04253523017950877,
+                                -0.2070431631601347,
+                                0.09050151825384754
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272100356382282e-9,
+                            "final_residual": 2.522043213940577e-10,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -1244,17 +1248,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272100356382282e-9
+                                2.522043213940577e-10
                             ],
                             "shift_history": [
-                                20.000000000000004
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1265,7 +1269,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 20291.0,
+                    "end_to_end_runtime_ns_median": 16542.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1274,26 +1278,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3125.0,
+                    "init_runtime_ns_median": 2792.0,
                     "init_runtime_ns_min": 2709.0,
                     "init_runtime_ns_samples": [
-                        17667.0,
-                        4084.0,
-                        3125.0,
-                        3125.0,
-                        2709.0
+                        11166.0,
+                        3042.0,
+                        2709.0,
+                        2792.0,
+                        2750.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2166.0,
-                    "iterate_runtime_ns_min": 1875.0,
+                    "iterate_runtime_ns_median": 2042.0,
+                    "iterate_runtime_ns_min": 1625.0,
                     "iterate_runtime_ns_samples": [
-                        20000.0,
-                        2166.0,
-                        2791.0,
-                        1875.0,
-                        1875.0
+                        5833.0,
+                        2292.0,
+                        1625.0,
+                        2042.0,
+                        1708.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
                     "maxrss_delta_bytes": 0,
@@ -1306,6 +1310,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.01,
                         "tol": 1.0e-10
@@ -1313,38 +1318,38 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.000000000000004,
-                            "eigenvalue_abs_error": 3.197442310920451e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732343,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.02509460660104468,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138959,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.2582341703960669,
-                                0.02750984341976035,
-                                0.07859054790326506,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329342,
-                                0.28944466731428886,
-                                -0.2413779379973957,
-                                0.04253523015423757,
-                                0.20704316313509746,
-                                -0.09050151824904615
+                                0.2110365025449081,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.025094606663651257,
+                                -0.26196994398540113,
+                                -0.34194008269768394,
+                                -0.2975753691631186,
+                                -0.06461975133293878,
+                                -0.37457941679504814,
+                                0.057200347870728085,
+                                -0.03266478701227392,
+                                -0.007237283456711537,
+                                -0.013617137734580427,
+                                0.2582341701055836,
+                                -0.027509843488441994,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173956,
+                                0.24098688085174236,
+                                -0.28944466729676427,
+                                0.24137793814799577,
+                                -0.04253523017950877,
+                                -0.2070431631601347,
+                                0.09050151825384754
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272100356382282e-9,
+                            "final_residual": 2.522043213940577e-10,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -1356,17 +1361,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272100356382282e-9
+                                2.522043213940577e-10
                             ],
                             "shift_history": [
-                                20.000000000000004
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1377,7 +1382,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 20499.0,
+                    "end_to_end_runtime_ns_median": 16917.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1386,26 +1391,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3291.0,
-                    "init_runtime_ns_min": 2791.0,
+                    "init_runtime_ns_median": 3334.0,
+                    "init_runtime_ns_min": 2584.0,
                     "init_runtime_ns_samples": [
-                        15750.0,
-                        4208.0,
-                        3291.0,
-                        3208.0,
-                        2791.0
+                        11459.0,
+                        3500.0,
+                        3334.0,
+                        2584.0,
+                        2667.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2208.0,
-                    "iterate_runtime_ns_min": 2000.0,
+                    "iterate_runtime_ns_median": 1875.0,
+                    "iterate_runtime_ns_min": 1625.0,
                     "iterate_runtime_ns_samples": [
-                        10583.0,
-                        2584.0,
-                        2208.0,
-                        2208.0,
-                        2000.0
+                        9625.0,
+                        2084.0,
+                        1708.0,
+                        1625.0,
+                        1875.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -1418,6 +1423,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.1,
                         "tol": 1.0e-10
@@ -1425,38 +1431,38 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.000000000000004,
-                            "eigenvalue_abs_error": 3.197442310920451e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732343,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.02509460660104468,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138959,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.2582341703960669,
-                                0.02750984341976035,
-                                0.07859054790326506,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329342,
-                                0.28944466731428886,
-                                -0.2413779379973957,
-                                0.04253523015423757,
-                                0.20704316313509746,
-                                -0.09050151824904615
+                                0.2110365025449081,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.025094606663651257,
+                                -0.26196994398540113,
+                                -0.34194008269768394,
+                                -0.2975753691631186,
+                                -0.06461975133293878,
+                                -0.37457941679504814,
+                                0.057200347870728085,
+                                -0.03266478701227392,
+                                -0.007237283456711537,
+                                -0.013617137734580427,
+                                0.2582341701055836,
+                                -0.027509843488441994,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173956,
+                                0.24098688085174236,
+                                -0.28944466729676427,
+                                0.24137793814799577,
+                                -0.04253523017950877,
+                                -0.2070431631601347,
+                                0.09050151825384754
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272100356382282e-9,
+                            "final_residual": 2.522043213940577e-10,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -1468,17 +1474,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272100356382282e-9
+                                2.522043213940577e-10
                             ],
                             "shift_history": [
-                                20.000000000000004
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1489,7 +1495,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 20750.0,
+                    "end_to_end_runtime_ns_median": 16375.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1498,26 +1504,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 18688,
                     "init_flops": null,
-                    "init_runtime_ns_median": 3583.0,
-                    "init_runtime_ns_min": 3000.0,
+                    "init_runtime_ns_median": 2875.0,
+                    "init_runtime_ns_min": 2500.0,
                     "init_runtime_ns_samples": [
-                        13291.0,
-                        4166.0,
-                        3583.0,
-                        3000.0,
-                        3000.0
+                        11375.0,
+                        3375.0,
+                        2875.0,
+                        2792.0,
+                        2500.0
                     ],
                     "iterate_alloc_count": 78,
                     "iterate_bytes_allocated": 11168,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2167.0,
-                    "iterate_runtime_ns_min": 1917.0,
+                    "iterate_runtime_ns_median": 1792.0,
+                    "iterate_runtime_ns_min": 1708.0,
                     "iterate_runtime_ns_samples": [
-                        9708.0,
-                        2083.0,
-                        2667.0,
-                        1917.0,
-                        2167.0
+                        7667.0,
+                        2125.0,
+                        1708.0,
+                        1750.0,
+                        1792.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -1530,6 +1536,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 1.0,
                         "tol": 1.0e-10
@@ -1537,38 +1544,38 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 20.000000000000004,
-                            "eigenvalue_abs_error": 3.197442310920451e-14,
+                            "eigenvalue": 19.999999999999993,
+                            "eigenvalue_abs_error": 4.263256414560601e-14,
                             "eigenvector": [
-                                -0.21103650257732343,
-                                0.2667716189659698,
-                                0.30338916293945933,
-                                -0.02509460660104468,
-                                0.2619699440111248,
-                                0.34194008257241937,
-                                0.29757536914106353,
-                                0.06461975136302452,
-                                0.37457941657727,
-                                -0.057200347911199885,
-                                0.03266478688138959,
-                                0.007237283567265109,
-                                0.013617137746951885,
-                                -0.2582341703960669,
-                                0.02750984341976035,
-                                0.07859054790326506,
-                                0.12799303719389318,
-                                0.12808537779012966,
-                                0.09522710159262683,
-                                -0.24098688086329342,
-                                0.28944466731428886,
-                                -0.2413779379973957,
-                                0.04253523015423757,
-                                0.20704316313509746,
-                                -0.09050151824904615
+                                0.2110365025449081,
+                                -0.2667716188173975,
+                                -0.3033891629193677,
+                                0.025094606663651257,
+                                -0.26196994398540113,
+                                -0.34194008269768394,
+                                -0.2975753691631186,
+                                -0.06461975133293878,
+                                -0.37457941679504814,
+                                0.057200347870728085,
+                                -0.03266478701227392,
+                                -0.007237283456711537,
+                                -0.013617137734580427,
+                                0.2582341701055836,
+                                -0.027509843488441994,
+                                -0.07859054783608835,
+                                -0.1279930370969558,
+                                -0.12808537777968645,
+                                -0.09522710143173956,
+                                0.24098688085174236,
+                                -0.28944466729676427,
+                                0.24137793814799577,
+                                -0.04253523017950877,
+                                -0.2070431631601347,
+                                0.09050151825384754
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 2.2272100356382282e-9,
+                            "final_residual": 2.522043213940577e-10,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -1580,17 +1587,17 @@
                             "oracle_nearest_eigenvalue": 20.000000000000036,
                             "outer_iterations": 1,
                             "residual_history": [
-                                2.2272100356382282e-9
+                                2.522043213940577e-10
                             ],
                             "shift_history": [
-                                20.000000000000004
+                                19.999999999999993
                             ],
-                            "sigma0": 19.999997349245763,
+                            "sigma0": 19.9999993791294,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 15000.0,
+                    "starts_runtime_ns_median": 11708.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -1602,17 +1609,17 @@
                 }
             ],
             "starts_benchmark": {
-                "alloc_count": 17,
-                "bytes_allocated": 1296,
+                "alloc_count": 24,
+                "bytes_allocated": 7008,
                 "flops": null,
-                "runtime_ns_median": 15000.0,
-                "runtime_ns_min": 14292.0,
+                "runtime_ns_median": 11708.0,
+                "runtime_ns_min": 11250.0,
                 "runtime_ns_samples": [
-                    23125.0,
-                    14292.0,
-                    14792.0,
-                    15000.0,
-                    15000.0
+                    28833.0,
+                    12583.0,
+                    11708.0,
+                    11250.0,
+                    11333.0
                 ]
             },
             "symmetric": false
@@ -1630,7 +1637,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 4167.0
+                    "total_runtime_ns_median": 5041.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.08333333333333333,
@@ -1643,7 +1650,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 6083.0
+                    "total_runtime_ns_median": 5459.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.08333333333333333,
@@ -1656,7 +1663,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 4958.0
+                    "total_runtime_ns_median": 5625.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.08333333333333333,
@@ -1669,7 +1676,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 4959.0
+                    "total_runtime_ns_median": 5376.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.08333333333333333,
@@ -1682,7 +1689,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 4917.0
+                    "total_runtime_ns_median": 5334.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.08333333333333333,
@@ -1695,7 +1702,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 4833.0
+                    "total_runtime_ns_median": 5584.0
                 },
                 "rqi_lu": {
                     "coverage": 0.08333333333333333,
@@ -1708,7 +1715,7 @@
                     "oracle_indices_found": [
                         12
                     ],
-                    "total_runtime_ns_median": 5417.0
+                    "total_runtime_ns_median": 4959.0
                 }
             },
             "eltype": "Float64",
@@ -1909,19 +1916,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 0,
-                "runtime_ns_median": 7875.0,
-                "runtime_ns_min": 6750.0,
+                "runtime_ns_median": 6792.0,
+                "runtime_ns_min": 6375.0,
                 "runtime_ns_samples": [
-                    31500.0,
-                    10917.0,
-                    7875.0,
-                    7167.0,
-                    6750.0
+                    24958.0,
+                    8417.0,
+                    6625.0,
+                    6792.0,
+                    6375.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 4167.0,
+                    "end_to_end_runtime_ns_median": 5041.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -1930,26 +1937,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 5568,
                     "init_flops": null,
-                    "init_runtime_ns_median": 416.0,
-                    "init_runtime_ns_min": 292.0,
+                    "init_runtime_ns_median": 583.0,
+                    "init_runtime_ns_min": 291.0,
                     "init_runtime_ns_samples": [
-                        4458.0,
-                        500.0,
+                        7459.0,
                         375.0,
-                        416.0,
-                        292.0
+                        583.0,
+                        291.0,
+                        1375.0
                     ],
                     "iterate_alloc_count": 13,
                     "iterate_bytes_allocated": 3136,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1334.0,
-                    "iterate_runtime_ns_min": 1083.0,
+                    "iterate_runtime_ns_median": 1166.0,
+                    "iterate_runtime_ns_min": 917.0,
                     "iterate_runtime_ns_samples": [
-                        10667.0,
-                        1875.0,
-                        1334.0,
-                        1167.0,
-                        1083.0
+                        9792.0,
+                        1583.0,
+                        1166.0,
+                        1000.0,
+                        917.0
                     ],
                     "label": "fixed_shift_lu",
                     "maxrss_delta_bytes": 0,
@@ -1962,6 +1969,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
@@ -1971,22 +1979,22 @@
                             "eigenvalue": 1.795372059561997,
                             "eigenvalue_abs_error": 1.9984014443252818e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.42056037555597653,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.1251963129728513,
-                                0.11574172839864796,
-                                0.10765640992683265
+                                -0.6833203329805815,
+                                -0.4205603755559943,
+                                -0.31517044063407273,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.1880042079380783,
+                                -0.16671297559040957,
+                                -0.1499688946363238,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878576,
+                                -0.10765640992696485
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.0367158342379259e-12,
+                            "final_residual": 1.8039278720568816e-13,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -1996,17 +2004,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.0367158342379259e-12
+                                1.8039278720568816e-13
                             ],
                             "shift_history": [
                                 1.795372059561997
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -2017,7 +2025,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 5417.0,
+                    "end_to_end_runtime_ns_median": 4959.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2026,26 +2034,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 5568,
                     "init_flops": null,
-                    "init_runtime_ns_median": 625.0,
-                    "init_runtime_ns_min": 333.0,
+                    "init_runtime_ns_median": 500.0,
+                    "init_runtime_ns_min": 250.0,
                     "init_runtime_ns_samples": [
-                        4333.0,
-                        625.0,
-                        708.0,
-                        375.0,
-                        333.0
+                        4042.0,
+                        500.0,
+                        583.0,
+                        333.0,
+                        250.0
                     ],
                     "iterate_alloc_count": 15,
                     "iterate_bytes_allocated": 3296,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2375.0,
-                    "iterate_runtime_ns_min": 2125.0,
+                    "iterate_runtime_ns_median": 1167.0,
+                    "iterate_runtime_ns_min": 1000.0,
                     "iterate_runtime_ns_samples": [
-                        15584.0,
-                        3292.0,
-                        2375.0,
-                        2208.0,
-                        2125.0
+                        8250.0,
+                        1500.0,
+                        1167.0,
+                        1042.0,
+                        1000.0
                     ],
                     "label": "rqi_lu",
                     "maxrss_delta_bytes": 0,
@@ -2058,6 +2066,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
@@ -2067,22 +2076,22 @@
                             "eigenvalue": 1.795372059561997,
                             "eigenvalue_abs_error": 1.9984014443252818e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.42056037555597653,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.1251963129728513,
-                                0.11574172839864796,
-                                0.10765640992683265
+                                -0.6833203329805815,
+                                -0.4205603755559943,
+                                -0.31517044063407273,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.1880042079380783,
+                                -0.16671297559040957,
+                                -0.1499688946363238,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878576,
+                                -0.10765640992696485
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.0367158342379259e-12,
+                            "final_residual": 1.8039278720568816e-13,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -2092,17 +2101,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.0367158342379259e-12
+                                1.8039278720568816e-13
                             ],
                             "shift_history": [
                                 1.795372059561997
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -2113,7 +2122,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 6083.0,
+                    "end_to_end_runtime_ns_median": 5459.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2122,26 +2131,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1208.0,
-                    "init_runtime_ns_min": 1083.0,
+                    "init_runtime_ns_median": 1125.0,
+                    "init_runtime_ns_min": 916.0,
                     "init_runtime_ns_samples": [
-                        9375.0,
-                        1666.0,
-                        1208.0,
-                        1083.0,
-                        1166.0
+                        7916.0,
+                        1416.0,
+                        1125.0,
+                        1041.0,
+                        916.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 2458.0,
-                    "iterate_runtime_ns_min": 2416.0,
+                    "iterate_runtime_ns_median": 1042.0,
+                    "iterate_runtime_ns_min": 875.0,
                     "iterate_runtime_ns_samples": [
-                        12167.0,
-                        2417.0,
-                        2458.0,
-                        2792.0,
-                        2416.0
+                        8416.0,
+                        1250.0,
+                        875.0,
+                        1042.0,
+                        917.0
                     ],
                     "label": "rqi_gmres_input_prec",
                     "maxrss_delta_bytes": 0,
@@ -2154,31 +2163,32 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 1.7953720595619966,
-                            "eigenvalue_abs_error": 2.4424906541753444e-15,
+                            "eigenvalue": 1.7953720595619977,
+                            "eigenvalue_abs_error": 1.3322676295501878e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.4205603755559765,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.12519631297285128,
-                                0.11574172839864795,
-                                0.10765640992683265
+                                -0.6833203329805814,
+                                -0.4205603755559943,
+                                -0.3151704406340727,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.18800420793807826,
+                                -0.16671297559040957,
+                                -0.14996889463632376,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878574,
+                                -0.10765640992696483
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.036826999752068e-12,
+                            "final_residual": 1.8029541180054584e-13,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -2190,17 +2200,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.036826999752068e-12
+                                1.8029541180054584e-13
                             ],
                             "shift_history": [
-                                1.7953720595619966
+                                1.7953720595619977
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2211,7 +2221,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 4958.0,
+                    "end_to_end_runtime_ns_median": 5625.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2220,26 +2230,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1291.0,
-                    "init_runtime_ns_min": 1000.0,
+                    "init_runtime_ns_median": 1166.0,
+                    "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        8625.0,
-                        1541.0,
-                        1291.0,
-                        1125.0,
-                        1000.0
+                        7500.0,
+                        1166.0,
+                        1083.0,
+                        1166.0,
+                        958.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1250.0,
-                    "iterate_runtime_ns_min": 1084.0,
+                    "iterate_runtime_ns_median": 1167.0,
+                    "iterate_runtime_ns_min": 959.0,
                     "iterate_runtime_ns_samples": [
-                        9375.0,
-                        1334.0,
-                        1166.0,
-                        1250.0,
-                        1084.0
+                        7917.0,
+                        1167.0,
+                        959.0,
+                        1333.0,
+                        1000.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
                     "maxrss_delta_bytes": 0,
@@ -2252,6 +2262,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.0,
                         "tol": 1.0e-10
@@ -2259,25 +2270,25 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 1.7953720595619966,
-                            "eigenvalue_abs_error": 2.4424906541753444e-15,
+                            "eigenvalue": 1.7953720595619977,
+                            "eigenvalue_abs_error": 1.3322676295501878e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.4205603755559765,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.12519631297285128,
-                                0.11574172839864795,
-                                0.10765640992683265
+                                -0.6833203329805814,
+                                -0.4205603755559943,
+                                -0.3151704406340727,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.18800420793807826,
+                                -0.16671297559040957,
+                                -0.14996889463632376,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878574,
+                                -0.10765640992696483
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.036826999752068e-12,
+                            "final_residual": 1.8029541180054584e-13,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -2289,17 +2300,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.036826999752068e-12
+                                1.8029541180054584e-13
                             ],
                             "shift_history": [
-                                1.7953720595619966
+                                1.7953720595619977
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2310,7 +2321,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 4959.0,
+                    "end_to_end_runtime_ns_median": 5376.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2319,25 +2330,25 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1250.0,
-                    "init_runtime_ns_min": 1209.0,
+                    "init_runtime_ns_median": 1084.0,
+                    "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        9208.0,
-                        1541.0,
-                        1250.0,
-                        1209.0,
-                        1209.0
+                        6333.0,
+                        1125.0,
+                        1084.0,
+                        1042.0,
+                        958.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1292.0,
-                    "iterate_runtime_ns_min": 1041.0,
+                    "iterate_runtime_ns_median": 1000.0,
+                    "iterate_runtime_ns_min": 917.0,
                     "iterate_runtime_ns_samples": [
-                        10041.0,
-                        1375.0,
-                        1125.0,
-                        1292.0,
+                        6083.0,
+                        1000.0,
+                        1000.0,
+                        917.0,
                         1041.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
@@ -2351,6 +2362,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.01,
                         "tol": 1.0e-10
@@ -2358,25 +2370,25 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 1.7953720595619966,
-                            "eigenvalue_abs_error": 2.4424906541753444e-15,
+                            "eigenvalue": 1.7953720595619977,
+                            "eigenvalue_abs_error": 1.3322676295501878e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.4205603755559765,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.12519631297285128,
-                                0.11574172839864795,
-                                0.10765640992683265
+                                -0.6833203329805814,
+                                -0.4205603755559943,
+                                -0.3151704406340727,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.18800420793807826,
+                                -0.16671297559040957,
+                                -0.14996889463632376,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878574,
+                                -0.10765640992696483
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.036826999752068e-12,
+                            "final_residual": 1.8029541180054584e-13,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -2388,17 +2400,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.036826999752068e-12
+                                1.8029541180054584e-13
                             ],
                             "shift_history": [
-                                1.7953720595619966
+                                1.7953720595619977
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2409,7 +2421,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 4917.0,
+                    "end_to_end_runtime_ns_median": 5334.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2418,26 +2430,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1250.0,
-                    "init_runtime_ns_min": 1041.0,
+                    "init_runtime_ns_median": 1083.0,
+                    "init_runtime_ns_min": 958.0,
                     "init_runtime_ns_samples": [
-                        9292.0,
-                        1666.0,
-                        1250.0,
-                        1041.0,
-                        1208.0
+                        4875.0,
+                        1166.0,
+                        1000.0,
+                        958.0,
+                        1083.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1250.0,
-                    "iterate_runtime_ns_min": 1084.0,
+                    "iterate_runtime_ns_median": 959.0,
+                    "iterate_runtime_ns_min": 916.0,
                     "iterate_runtime_ns_samples": [
-                        10292.0,
-                        1291.0,
-                        1084.0,
-                        1250.0,
-                        1125.0
+                        7292.0,
+                        1125.0,
+                        916.0,
+                        959.0,
+                        917.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -2450,6 +2462,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.1,
                         "tol": 1.0e-10
@@ -2457,25 +2470,25 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 1.7953720595619966,
-                            "eigenvalue_abs_error": 2.4424906541753444e-15,
+                            "eigenvalue": 1.7953720595619977,
+                            "eigenvalue_abs_error": 1.3322676295501878e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.4205603755559765,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.12519631297285128,
-                                0.11574172839864795,
-                                0.10765640992683265
+                                -0.6833203329805814,
+                                -0.4205603755559943,
+                                -0.3151704406340727,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.18800420793807826,
+                                -0.16671297559040957,
+                                -0.14996889463632376,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878574,
+                                -0.10765640992696483
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.036826999752068e-12,
+                            "final_residual": 1.8029541180054584e-13,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -2487,17 +2500,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.036826999752068e-12
+                                1.8029541180054584e-13
                             ],
                             "shift_history": [
-                                1.7953720595619966
+                                1.7953720595619977
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2508,7 +2521,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 4833.0,
+                    "end_to_end_runtime_ns_median": 5584.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -2517,26 +2530,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 6304,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1250.0,
-                    "init_runtime_ns_min": 1083.0,
+                    "init_runtime_ns_median": 1167.0,
+                    "init_runtime_ns_min": 959.0,
                     "init_runtime_ns_samples": [
-                        9541.0,
-                        1666.0,
-                        1250.0,
+                        5792.0,
+                        1417.0,
                         1083.0,
-                        1125.0
+                        1167.0,
+                        959.0
                     ],
                     "iterate_alloc_count": 62,
                     "iterate_bytes_allocated": 6096,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 1166.0,
-                    "iterate_runtime_ns_min": 1041.0,
+                    "iterate_runtime_ns_median": 1125.0,
+                    "iterate_runtime_ns_min": 958.0,
                     "iterate_runtime_ns_samples": [
-                        8750.0,
-                        1250.0,
-                        1084.0,
-                        1166.0,
-                        1041.0
+                        8209.0,
+                        1167.0,
+                        1000.0,
+                        1125.0,
+                        958.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -2549,6 +2562,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 1.0,
                         "tol": 1.0e-10
@@ -2556,25 +2570,25 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 1.7953720595619966,
-                            "eigenvalue_abs_error": 2.4424906541753444e-15,
+                            "eigenvalue": 1.7953720595619977,
+                            "eigenvalue_abs_error": 1.3322676295501878e-15,
                             "eigenvector": [
-                                0.6833203329809708,
-                                0.4205603755559765,
-                                0.3151704406339559,
-                                0.25544449143506404,
-                                0.21614623085468002,
-                                0.18800420793791647,
-                                0.166712975590251,
-                                0.1499688946361701,
-                                0.13641543247168073,
-                                0.12519631297285128,
-                                0.11574172839864795,
-                                0.10765640992683265
+                                -0.6833203329805814,
+                                -0.4205603755559943,
+                                -0.3151704406340727,
+                                -0.25544449143521547,
+                                -0.2161462308548409,
+                                -0.18800420793807826,
+                                -0.16671297559040957,
+                                -0.14996889463632376,
+                                -0.1364154324718305,
+                                -0.12519631297299394,
+                                -0.11574172839878574,
+                                -0.10765640992696483
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 1.036826999752068e-12,
+                            "final_residual": 1.8029541180054584e-13,
                             "gmres_iterations_per_step": [
                                 1
                             ],
@@ -2586,17 +2600,17 @@
                             "oracle_nearest_eigenvalue": 1.795372059561999,
                             "outer_iterations": 1,
                             "residual_history": [
-                                1.036826999752068e-12
+                                1.8029541180054584e-13
                             ],
                             "shift_history": [
-                                1.7953720595619966
+                                1.7953720595619977
                             ],
-                            "sigma0": 1.795372048060667,
+                            "sigma0": 1.7953720559641917,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 2417.0,
+                    "starts_runtime_ns_median": 3292.0,
                     "totals": {
                         "gmres_iterations_total": 1,
                         "gmres_stalled_solves": 0,
@@ -2608,17 +2622,17 @@
                 }
             ],
             "starts_benchmark": {
-                "alloc_count": 17,
-                "bytes_allocated": 1008,
+                "alloc_count": 23,
+                "bytes_allocated": 2624,
                 "flops": null,
-                "runtime_ns_median": 2417.0,
-                "runtime_ns_min": 2375.0,
+                "runtime_ns_median": 3292.0,
+                "runtime_ns_min": 3000.0,
                 "runtime_ns_samples": [
-                    11667.0,
-                    2625.0,
-                    2417.0,
-                    2375.0,
-                    2417.0
+                    15667.0,
+                    3667.0,
+                    3292.0,
+                    3125.0,
+                    3000.0
                 ]
             },
             "symmetric": true
@@ -2636,7 +2650,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 85292.0
+                    "total_runtime_ns_median": 41959.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.06666666666666667,
@@ -2649,7 +2663,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 86209.0
+                    "total_runtime_ns_median": 43459.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.06666666666666667,
@@ -2662,7 +2676,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 86167.0
+                    "total_runtime_ns_median": 45167.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.06666666666666667,
@@ -2675,7 +2689,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 85875.0
+                    "total_runtime_ns_median": 43667.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.06666666666666667,
@@ -2688,7 +2702,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 85709.0
+                    "total_runtime_ns_median": 44292.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.06666666666666667,
@@ -2701,7 +2715,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 85667.0
+                    "total_runtime_ns_median": 43458.0
                 },
                 "rqi_lu": {
                     "coverage": 0.06666666666666667,
@@ -2714,7 +2728,7 @@
                     "oracle_indices_found": [
                         15
                     ],
-                    "total_runtime_ns_median": 84042.0
+                    "total_runtime_ns_median": 42292.0
                 }
             },
             "eltype": "Float64",
@@ -3005,19 +3019,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 0,
-                "runtime_ns_median": 22042.0,
-                "runtime_ns_min": 21292.0,
+                "runtime_ns_median": 20667.0,
+                "runtime_ns_min": 19750.0,
                 "runtime_ns_samples": [
-                    51583.0,
-                    24542.0,
-                    22042.0,
-                    21292.0,
-                    21417.0
+                    59375.0,
+                    28000.0,
+                    20667.0,
+                    20167.0,
+                    19750.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 85292.0,
+                    "end_to_end_runtime_ns_median": 41959.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3026,26 +3040,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 8032,
                     "init_flops": null,
-                    "init_runtime_ns_median": 584.0,
-                    "init_runtime_ns_min": 458.0,
+                    "init_runtime_ns_median": 709.0,
+                    "init_runtime_ns_min": 583.0,
                     "init_runtime_ns_samples": [
-                        4459.0,
-                        584.0,
-                        875.0,
-                        500.0,
-                        458.0
+                        5334.0,
+                        708.0,
+                        709.0,
+                        750.0,
+                        583.0
                     ],
                     "iterate_alloc_count": 13,
                     "iterate_bytes_allocated": 3952,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4458.0,
-                    "iterate_runtime_ns_min": 4291.0,
+                    "iterate_runtime_ns_median": 2500.0,
+                    "iterate_runtime_ns_min": 2042.0,
                     "iterate_runtime_ns_samples": [
-                        15958.0,
-                        4917.0,
-                        4458.0,
-                        4333.0,
-                        4291.0
+                        10583.0,
+                        2625.0,
+                        2500.0,
+                        2042.0,
+                        2125.0
                     ],
                     "label": "fixed_shift_lu",
                     "maxrss_delta_bytes": 0,
@@ -3058,34 +3072,35 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.0000000003423204,
-                            "eigenvalue_abs_error": 3.4231995016398287e-10,
+                            "eigenvalue": 3.000000000043634,
+                            "eigenvalue_abs_error": 4.363354122460805e-11,
                             "eigenvector": [
-                                0.2694538821310841,
-                                -0.07197403760065967,
-                                0.3794115440406556,
-                                0.6283314350711237,
-                                0.05673201705560056,
-                                0.08028284216349424,
-                                0.07442134046702355,
-                                -0.15488593329802397,
-                                -0.21819449286279177,
-                                -0.13604534691334091,
-                                -0.47512586297058046,
-                                0.0180928516778054,
-                                -0.12886464679715567,
-                                -0.02342421293689196,
-                                0.1868820095324217
+                                0.2694538828812966,
+                                -0.07197403582099739,
+                                0.37941154380864517,
+                                0.6283314358867382,
+                                0.0567320193152751,
+                                0.080282840652565,
+                                0.07442134141339007,
+                                -0.15488593184657248,
+                                -0.21819449394138016,
+                                -0.1360453449464096,
+                                -0.4751258629344957,
+                                0.01809284929304668,
+                                -0.12886464555305233,
+                                -0.02342421530900729,
+                                0.18688200870984903
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 9.454039736128132e-10,
+                            "final_residual": 1.209011614171226e-10,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -3095,21 +3110,21 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 3,
                             "residual_history": [
-                                1.8229854738711647e-5,
-                                1.3131665319956006e-7,
-                                9.454039736128132e-10
+                                6.650062955015593e-6,
+                                2.8369089920279426e-8,
+                                1.209011614171226e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                2.9999999519421996,
-                                3.0000000003423204
+                                3.0000024531617946,
+                                2.9999999896837797,
+                                3.000000000043634
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -3120,7 +3135,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 84042.0,
+                    "end_to_end_runtime_ns_median": 42292.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3129,26 +3144,26 @@
                     "init_alloc_count": 26,
                     "init_bytes_allocated": 8032,
                     "init_flops": null,
-                    "init_runtime_ns_median": 500.0,
-                    "init_runtime_ns_min": 416.0,
+                    "init_runtime_ns_median": 542.0,
+                    "init_runtime_ns_min": 292.0,
                     "init_runtime_ns_samples": [
-                        3875.0,
-                        917.0,
-                        459.0,
-                        500.0,
-                        416.0
+                        3583.0,
+                        542.0,
+                        542.0,
+                        292.0,
+                        625.0
                     ],
                     "iterate_alloc_count": 17,
                     "iterate_bytes_allocated": 4304,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3292.0,
-                    "iterate_runtime_ns_min": 3208.0,
+                    "iterate_runtime_ns_median": 3000.0,
+                    "iterate_runtime_ns_min": 2792.0,
                     "iterate_runtime_ns_samples": [
-                        13584.0,
-                        3834.0,
-                        3292.0,
-                        3208.0,
-                        3250.0
+                        10542.0,
+                        3166.0,
+                        3000.0,
+                        2792.0,
+                        2958.0
                     ],
                     "label": "rqi_lu",
                     "maxrss_delta_bytes": 0,
@@ -3161,34 +3176,35 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.000000000318691,
-                            "eigenvalue_abs_error": 3.186904073970709e-10,
+                            "eigenvalue": 3.0000000000416494,
+                            "eigenvalue_abs_error": 4.164890654578812e-11,
                             "eigenvector": [
-                                -0.26945388219779415,
-                                0.07197403744492949,
-                                -0.379411544010682,
-                                -0.6283314351767646,
-                                -0.05673201725842463,
-                                -0.08028284205704035,
-                                -0.0744213405257713,
-                                0.15488593318825053,
-                                0.21819449295416898,
-                                0.13604534670998517,
-                                0.47512586293489356,
-                                -0.01809285145260855,
-                                0.12886464666915706,
-                                0.023424213143348013,
-                                -0.18688200946989253
+                                -0.2694538828869647,
+                                0.07197403580779328,
+                                -0.3794115438060349,
+                                -0.6283314358959863,
+                                -0.05673201933251111,
+                                -0.08028284064376243,
+                                -0.07442134141816821,
+                                0.1548859318374091,
+                                0.21819449394909268,
+                                0.13604534492890358,
+                                0.47512586293117925,
+                                -0.018092849273810108,
+                                0.12886464554204405,
+                                0.023424215326486073,
+                                -0.1868820087046412
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 8.707464912980561e-10,
+                            "final_residual": 1.1452857244489838e-10,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -3198,19 +3214,19 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 2,
                             "residual_history": [
-                                1.8229854738711647e-5,
-                                8.707464912980561e-10
+                                6.650062955015593e-6,
+                                1.1452857244489838e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                3.000000000318691
+                                3.0000024531617946,
+                                3.0000000000416494
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -3221,7 +3237,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 86209.0,
+                    "end_to_end_runtime_ns_median": 43459.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3230,26 +3246,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2500.0,
-                    "init_runtime_ns_min": 1708.0,
+                    "init_runtime_ns_median": 1667.0,
+                    "init_runtime_ns_min": 1375.0,
                     "init_runtime_ns_samples": [
-                        13292.0,
-                        3000.0,
-                        2500.0,
-                        1708.0,
-                        2000.0
+                        7125.0,
+                        1916.0,
+                        1542.0,
+                        1667.0,
+                        1375.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3459.0,
-                    "iterate_runtime_ns_min": 3250.0,
+                    "iterate_runtime_ns_median": 3042.0,
+                    "iterate_runtime_ns_min": 2916.0,
                     "iterate_runtime_ns_samples": [
-                        12125.0,
-                        4000.0,
-                        3333.0,
-                        3459.0,
-                        3250.0
+                        8292.0,
+                        3167.0,
+                        3042.0,
+                        3000.0,
+                        2916.0
                     ],
                     "label": "rqi_gmres_input_prec",
                     "maxrss_delta_bytes": 0,
@@ -3262,34 +3278,35 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.000000000318688,
-                            "eigenvalue_abs_error": 3.186877428618118e-10,
+                            "eigenvalue": 3.0000000000416485,
+                            "eigenvalue_abs_error": 4.164801836736842e-11,
                             "eigenvector": [
-                                -0.2694538821977945,
-                                0.071974037444929,
-                                -0.37941154401068294,
-                                -0.6283314351767646,
-                                -0.05673201725842485,
-                                -0.08028284205704017,
-                                -0.07442134052577173,
-                                0.15488593318824992,
-                                0.21819449295416854,
-                                0.13604534670998494,
-                                0.4751258629348927,
-                                -0.018092851452607913,
-                                0.1288646466691573,
-                                0.023424213143347434,
-                                -0.18688200946989325
+                                -0.2694538828869647,
+                                0.0719740358077932,
+                                -0.37941154380603465,
+                                -0.6283314358959867,
+                                -0.056732019332511194,
+                                -0.08028284064376265,
+                                -0.07442134141816809,
+                                0.15488593183740926,
+                                0.21819449394909268,
+                                0.13604534492890324,
+                                0.4751258629311789,
+                                -0.018092849273809917,
+                                0.12886464554204383,
+                                0.023424215326486156,
+                                -0.18688200870464125
                             ],
-                            "eigenvector_error": 0.0,
+                            "eigenvector_error": 1.4901161193847656e-8,
                             "fail_reason": "None",
-                            "final_residual": 8.70746421534875e-10,
+                            "final_residual": 1.1452853877377663e-10,
                             "gmres_iterations_per_step": [
                                 1,
                                 3
@@ -3302,19 +3319,19 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 2,
                             "residual_history": [
-                                1.8229854738692104e-5,
-                                8.70746421534875e-10
+                                6.650062955012903e-6,
+                                1.1452853877377663e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                3.000000000318688
+                                3.000002453161794,
+                                3.0000000000416485
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3325,7 +3342,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 86167.0,
+                    "end_to_end_runtime_ns_median": 45167.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3334,26 +3351,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2000.0,
-                    "init_runtime_ns_min": 1792.0,
+                    "init_runtime_ns_median": 1750.0,
+                    "init_runtime_ns_min": 1459.0,
                     "init_runtime_ns_samples": [
-                        9333.0,
-                        2250.0,
-                        2000.0,
-                        1792.0,
-                        1833.0
+                        9916.0,
+                        1750.0,
+                        1834.0,
+                        1459.0,
+                        1750.0
                     ],
                     "iterate_alloc_count": 129,
                     "iterate_bytes_allocated": 13072,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3917.0,
-                    "iterate_runtime_ns_min": 3625.0,
+                    "iterate_runtime_ns_median": 4667.0,
+                    "iterate_runtime_ns_min": 4500.0,
                     "iterate_runtime_ns_samples": [
-                        14250.0,
-                        4167.0,
-                        3875.0,
-                        3917.0,
-                        3625.0
+                        11042.0,
+                        5458.0,
+                        4500.0,
+                        4667.0,
+                        4500.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
                     "maxrss_delta_bytes": 0,
@@ -3366,6 +3383,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.0,
                         "tol": 1.0e-10
@@ -3373,28 +3391,28 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.000000000318691,
-                            "eigenvalue_abs_error": 3.186904073970709e-10,
+                            "eigenvalue": 3.000000000041649,
+                            "eigenvalue_abs_error": 4.164846245657827e-11,
                             "eigenvector": [
-                                -0.26945388219779415,
-                                0.07197403744492947,
-                                -0.379411544010682,
-                                -0.6283314351767646,
-                                -0.05673201725842463,
-                                -0.08028284205704034,
-                                -0.0744213405257713,
-                                0.1548859331882505,
-                                0.21819449295416898,
-                                0.13604534670998517,
-                                0.4751258629348935,
-                                -0.01809285145260855,
-                                0.128864646669157,
-                                0.023424213143348006,
-                                -0.18688200946989253
+                                -0.26945388288696476,
+                                0.0719740358077929,
+                                -0.3794115438060347,
+                                -0.628331435895987,
+                                -0.05673201933251153,
+                                -0.08028284064376255,
+                                -0.07442134141816813,
+                                0.15488593183740923,
+                                0.21819449394909285,
+                                0.13604534492890286,
+                                0.475125862931179,
+                                -0.018092849273809455,
+                                0.12886464554204358,
+                                0.023424215326486753,
+                                -0.18688200870464108
                             ],
-                            "eigenvector_error": 0.0,
+                            "eigenvector_error": 1.4901161193847656e-8,
                             "fail_reason": "None",
-                            "final_residual": 8.707465188789447e-10,
+                            "final_residual": 1.1452854406289556e-10,
                             "gmres_iterations_per_step": [
                                 1,
                                 1
@@ -3407,19 +3425,19 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 2,
                             "residual_history": [
-                                1.8229854738692104e-5,
-                                8.707465188789447e-10
+                                6.650062955012903e-6,
+                                1.1452854406289556e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                3.000000000318691
+                                3.000002453161794,
+                                3.000000000041649
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 0,
@@ -3430,7 +3448,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 85875.0,
+                    "end_to_end_runtime_ns_median": 43667.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3439,26 +3457,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1917.0,
-                    "init_runtime_ns_min": 1750.0,
+                    "init_runtime_ns_median": 1834.0,
+                    "init_runtime_ns_min": 1500.0,
                     "init_runtime_ns_samples": [
-                        9958.0,
-                        2333.0,
-                        1917.0,
-                        1916.0,
-                        1750.0
+                        8292.0,
+                        2125.0,
+                        1834.0,
+                        1500.0,
+                        1541.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3708.0,
-                    "iterate_runtime_ns_min": 3375.0,
+                    "iterate_runtime_ns_median": 3083.0,
+                    "iterate_runtime_ns_min": 2875.0,
                     "iterate_runtime_ns_samples": [
-                        15208.0,
-                        3792.0,
-                        3458.0,
-                        3708.0,
-                        3375.0
+                        10583.0,
+                        3417.0,
+                        2875.0,
+                        3083.0,
+                        2917.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
                     "maxrss_delta_bytes": 0,
@@ -3471,6 +3489,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.01,
                         "tol": 1.0e-10
@@ -3478,28 +3497,28 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.000000000318688,
-                            "eigenvalue_abs_error": 3.186877428618118e-10,
+                            "eigenvalue": 3.0000000000416485,
+                            "eigenvalue_abs_error": 4.164801836736842e-11,
                             "eigenvector": [
-                                -0.2694538821977945,
-                                0.071974037444929,
-                                -0.37941154401068294,
-                                -0.6283314351767646,
-                                -0.05673201725842485,
-                                -0.08028284205704017,
-                                -0.07442134052577173,
-                                0.15488593318824992,
-                                0.21819449295416854,
-                                0.13604534670998494,
-                                0.4751258629348927,
-                                -0.018092851452607913,
-                                0.1288646466691573,
-                                0.023424213143347434,
-                                -0.18688200946989325
+                                -0.2694538828869647,
+                                0.0719740358077932,
+                                -0.37941154380603465,
+                                -0.6283314358959867,
+                                -0.056732019332511194,
+                                -0.08028284064376265,
+                                -0.07442134141816809,
+                                0.15488593183740926,
+                                0.21819449394909268,
+                                0.13604534492890324,
+                                0.4751258629311789,
+                                -0.018092849273809917,
+                                0.12886464554204383,
+                                0.023424215326486156,
+                                -0.18688200870464125
                             ],
-                            "eigenvector_error": 0.0,
+                            "eigenvector_error": 1.4901161193847656e-8,
                             "fail_reason": "None",
-                            "final_residual": 8.70746421534875e-10,
+                            "final_residual": 1.1452853877377663e-10,
                             "gmres_iterations_per_step": [
                                 1,
                                 3
@@ -3512,19 +3531,19 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 2,
                             "residual_history": [
-                                1.8229854738692104e-5,
-                                8.70746421534875e-10
+                                6.650062955012903e-6,
+                                1.1452853877377663e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                3.000000000318688
+                                3.000002453161794,
+                                3.0000000000416485
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3535,7 +3554,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 85709.0,
+                    "end_to_end_runtime_ns_median": 44292.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3544,26 +3563,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2000.0,
-                    "init_runtime_ns_min": 1583.0,
+                    "init_runtime_ns_median": 1834.0,
+                    "init_runtime_ns_min": 1500.0,
                     "init_runtime_ns_samples": [
-                        8791.0,
-                        2333.0,
-                        2000.0,
-                        1583.0,
-                        1958.0
+                        7541.0,
+                        1834.0,
+                        1875.0,
+                        1500.0,
+                        1500.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3459.0,
-                    "iterate_runtime_ns_min": 3333.0,
+                    "iterate_runtime_ns_median": 3708.0,
+                    "iterate_runtime_ns_min": 3208.0,
                     "iterate_runtime_ns_samples": [
-                        12125.0,
-                        3750.0,
-                        3416.0,
-                        3459.0,
-                        3333.0
+                        9125.0,
+                        3208.0,
+                        3292.0,
+                        3708.0,
+                        4042.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -3576,6 +3595,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.1,
                         "tol": 1.0e-10
@@ -3583,28 +3603,28 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.000000000318688,
-                            "eigenvalue_abs_error": 3.186877428618118e-10,
+                            "eigenvalue": 3.0000000000416485,
+                            "eigenvalue_abs_error": 4.164801836736842e-11,
                             "eigenvector": [
-                                -0.2694538821977945,
-                                0.071974037444929,
-                                -0.37941154401068294,
-                                -0.6283314351767646,
-                                -0.05673201725842485,
-                                -0.08028284205704017,
-                                -0.07442134052577173,
-                                0.15488593318824992,
-                                0.21819449295416854,
-                                0.13604534670998494,
-                                0.4751258629348927,
-                                -0.018092851452607913,
-                                0.1288646466691573,
-                                0.023424213143347434,
-                                -0.18688200946989325
+                                -0.2694538828869647,
+                                0.0719740358077932,
+                                -0.37941154380603465,
+                                -0.6283314358959867,
+                                -0.056732019332511194,
+                                -0.08028284064376265,
+                                -0.07442134141816809,
+                                0.15488593183740926,
+                                0.21819449394909268,
+                                0.13604534492890324,
+                                0.4751258629311789,
+                                -0.018092849273809917,
+                                0.12886464554204383,
+                                0.023424215326486156,
+                                -0.18688200870464125
                             ],
-                            "eigenvector_error": 0.0,
+                            "eigenvector_error": 1.4901161193847656e-8,
                             "fail_reason": "None",
-                            "final_residual": 8.70746421534875e-10,
+                            "final_residual": 1.1452853877377663e-10,
                             "gmres_iterations_per_step": [
                                 1,
                                 3
@@ -3617,19 +3637,19 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 2,
                             "residual_history": [
-                                1.8229854738692104e-5,
-                                8.70746421534875e-10
+                                6.650062955012903e-6,
+                                1.1452853877377663e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                3.000000000318688
+                                3.000002453161794,
+                                3.0000000000416485
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3640,7 +3660,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 85667.0,
+                    "end_to_end_runtime_ns_median": 43458.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -3649,26 +3669,26 @@
                     "init_alloc_count": 43,
                     "init_bytes_allocated": 8768,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1875.0,
-                    "init_runtime_ns_min": 1709.0,
+                    "init_runtime_ns_median": 1667.0,
+                    "init_runtime_ns_min": 1416.0,
                     "init_runtime_ns_samples": [
-                        8583.0,
-                        2584.0,
+                        6292.0,
                         1875.0,
-                        1833.0,
-                        1709.0
+                        1416.0,
+                        1667.0,
+                        1417.0
                     ],
                     "iterate_alloc_count": 128,
                     "iterate_bytes_allocated": 12992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3542.0,
-                    "iterate_runtime_ns_min": 3417.0,
+                    "iterate_runtime_ns_median": 3041.0,
+                    "iterate_runtime_ns_min": 2958.0,
                     "iterate_runtime_ns_samples": [
-                        11708.0,
-                        3791.0,
-                        3417.0,
-                        3542.0,
-                        3459.0
+                        9375.0,
+                        3250.0,
+                        3041.0,
+                        2959.0,
+                        2958.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -3681,6 +3701,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 1.0,
                         "tol": 1.0e-10
@@ -3688,28 +3709,28 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 3.000000000318688,
-                            "eigenvalue_abs_error": 3.186877428618118e-10,
+                            "eigenvalue": 3.0000000000416485,
+                            "eigenvalue_abs_error": 4.164801836736842e-11,
                             "eigenvector": [
-                                -0.2694538821977945,
-                                0.071974037444929,
-                                -0.37941154401068294,
-                                -0.6283314351767646,
-                                -0.05673201725842485,
-                                -0.08028284205704017,
-                                -0.07442134052577173,
-                                0.15488593318824992,
-                                0.21819449295416854,
-                                0.13604534670998494,
-                                0.4751258629348927,
-                                -0.018092851452607913,
-                                0.1288646466691573,
-                                0.023424213143347434,
-                                -0.18688200946989325
+                                -0.2694538828869647,
+                                0.0719740358077932,
+                                -0.37941154380603465,
+                                -0.6283314358959867,
+                                -0.056732019332511194,
+                                -0.08028284064376265,
+                                -0.07442134141816809,
+                                0.15488593183740926,
+                                0.21819449394909268,
+                                0.13604534492890324,
+                                0.4751258629311789,
+                                -0.018092849273809917,
+                                0.12886464554204383,
+                                0.023424215326486156,
+                                -0.18688200870464125
                             ],
-                            "eigenvector_error": 0.0,
+                            "eigenvector_error": 1.4901161193847656e-8,
                             "fail_reason": "None",
-                            "final_residual": 8.70746421534875e-10,
+                            "final_residual": 1.1452853877377663e-10,
                             "gmres_iterations_per_step": [
                                 1,
                                 3
@@ -3722,19 +3743,19 @@
                             "oracle_nearest_eigenvalue": 3.0000000000000004,
                             "outer_iterations": 2,
                             "residual_history": [
-                                1.8229854738692104e-5,
-                                8.70746421534875e-10
+                                6.650062955012903e-6,
+                                1.1452853877377663e-10
                             ],
                             "shift_history": [
-                                3.0000068032604195,
-                                3.000000000318688
+                                3.000002453161794,
+                                3.0000000000416485
                             ],
-                            "sigma0": 2.9989813848291544,
+                            "sigma0": 2.9993949324660405,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 80250.0,
+                    "starts_runtime_ns_median": 38750.0,
                     "totals": {
                         "gmres_iterations_total": 4,
                         "gmres_stalled_solves": 0,
@@ -3746,17 +3767,17 @@
                 }
             ],
             "starts_benchmark": {
-                "alloc_count": 17,
-                "bytes_allocated": 1056,
+                "alloc_count": 23,
+                "bytes_allocated": 3488,
                 "flops": null,
-                "runtime_ns_median": 80250.0,
-                "runtime_ns_min": 50542.0,
+                "runtime_ns_median": 38750.0,
+                "runtime_ns_min": 38458.0,
                 "runtime_ns_samples": [
-                    95916.0,
-                    80250.0,
-                    78500.0,
-                    81583.0,
-                    50542.0
+                    50500.0,
+                    38875.0,
+                    38750.0,
+                    38458.0,
+                    38625.0
                 ]
             },
             "symmetric": false
@@ -3774,7 +3795,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 47208.0
+                    "total_runtime_ns_median": 58875.0
                 },
                 "rqi_gmres_input_prec": {
                     "coverage": 0.05,
@@ -3787,7 +3808,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 52125.0
+                    "total_runtime_ns_median": 60708.0
                 },
                 "rqi_gmres_prev_prec (tau=0.0)": {
                     "coverage": 0.05,
@@ -3800,7 +3821,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 49834.0
+                    "total_runtime_ns_median": 61833.0
                 },
                 "rqi_gmres_prev_prec (tau=0.01)": {
                     "coverage": 0.05,
@@ -3813,7 +3834,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 53208.0
+                    "total_runtime_ns_median": 60875.0
                 },
                 "rqi_gmres_prev_prec (tau=0.1)": {
                     "coverage": 0.05,
@@ -3826,7 +3847,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 49959.0
+                    "total_runtime_ns_median": 60917.0
                 },
                 "rqi_gmres_prev_prec (tau=1.0)": {
                     "coverage": 0.05,
@@ -3839,7 +3860,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 50209.0
+                    "total_runtime_ns_median": 60666.0
                 },
                 "rqi_lu": {
                     "coverage": 0.05,
@@ -3852,7 +3873,7 @@
                     "oracle_indices_found": [
                         20
                     ],
-                    "total_runtime_ns_median": 48167.0
+                    "total_runtime_ns_median": 60333.0
                 }
             },
             "eltype": "Float64",
@@ -4333,19 +4354,19 @@
                 "flops": null,
                 "gc_time_ns_max": 0.0,
                 "maxrss_delta_bytes": 0,
-                "runtime_ns_median": 17916.0,
-                "runtime_ns_min": 16666.0,
+                "runtime_ns_median": 16833.0,
+                "runtime_ns_min": 15625.0,
                 "runtime_ns_samples": [
-                    43792.0,
-                    23291.0,
-                    17916.0,
-                    17291.0,
-                    16666.0
+                    36667.0,
+                    19625.0,
+                    16833.0,
+                    15666.0,
+                    15625.0
                 ]
             },
             "runs": [
                 {
-                    "end_to_end_runtime_ns_median": 47208.0,
+                    "end_to_end_runtime_ns_median": 58875.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4354,26 +4375,26 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 13120,
                     "init_flops": null,
-                    "init_runtime_ns_median": 958.0,
-                    "init_runtime_ns_min": 834.0,
+                    "init_runtime_ns_median": 875.0,
+                    "init_runtime_ns_min": 666.0,
                     "init_runtime_ns_samples": [
-                        5250.0,
-                        1584.0,
-                        834.0,
-                        917.0,
-                        958.0
+                        5125.0,
+                        1250.0,
+                        875.0,
+                        667.0,
+                        666.0
                     ],
                     "iterate_alloc_count": 14,
                     "iterate_bytes_allocated": 5632,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 3500.0,
-                    "iterate_runtime_ns_min": 3041.0,
+                    "iterate_runtime_ns_median": 2500.0,
+                    "iterate_runtime_ns_min": 2291.0,
                     "iterate_runtime_ns_samples": [
-                        15333.0,
-                        3958.0,
-                        3500.0,
-                        3333.0,
-                        3041.0
+                        11667.0,
+                        2875.0,
+                        2500.0,
+                        2292.0,
+                        2291.0
                     ],
                     "label": "fixed_shift_lu",
                     "maxrss_delta_bytes": 0,
@@ -4386,6 +4407,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
@@ -4395,30 +4417,30 @@
                             "eigenvalue": 4.750249863270328,
                             "eigenvalue_abs_error": 0.0,
                             "eigenvector": [
-                                0.09317598504667136,
-                                -0.15934706897179313,
-                                0.06428704403489494,
-                                0.12334598894698824,
-                                -0.3823446961967647,
-                                0.4416799391847025,
-                                -0.17672248656781195,
-                                0.15666114368216041,
-                                0.42673890147623644,
-                                0.006799571214636369,
-                                -0.41287698120782534,
-                                0.25576841493504693,
-                                -0.09548615239329898,
-                                0.2026483605718911,
-                                0.13786812997815368,
-                                -0.02089290936506487,
-                                -0.1194231796542694,
-                                0.11798294938469371,
-                                -0.026011482495111513,
-                                -0.18169680308137243
+                                0.09317598478375765,
+                                -0.15934706953865746,
+                                0.0642870439217722,
+                                0.12334598926056585,
+                                -0.3823446965032857,
+                                0.4416799389867012,
+                                -0.17672248666311083,
+                                0.15666114349094773,
+                                0.4267389013279684,
+                                0.0067995714496155435,
+                                -0.4128769813533603,
+                                0.2557684151454092,
+                                -0.09548615201976746,
+                                0.20264835997662442,
+                                0.13786812990351363,
+                                -0.020892910612176574,
+                                -0.11942317925362139,
+                                0.11798294957923741,
+                                -0.02601148235167789,
+                                -0.1816968030982791
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637813993740777e-10,
+                            "final_residual": 8.04500712350004e-14,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -4426,36 +4448,32 @@
                             "n_perturbations": 0,
                             "n_shifts": 0,
                             "oracle_nearest_eigenvalue": 4.750249863270328,
-                            "outer_iterations": 4,
+                            "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739704448,
-                                4.38509097333131e-6,
-                                4.972150135762319e-8,
-                                5.637813993740777e-10
+                                8.816988986204027e-9,
+                                8.04500712350004e-14
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863210298,
-                                4.750249863270319,
+                                4.7502498632703265,
                                 4.750249863270328
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
                         "n_factorizations": 1,
                         "n_perturbations": 0,
                         "n_shifts": 0,
-                        "outer_iterations": 4
+                        "outer_iterations": 2
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 48167.0,
+                    "end_to_end_runtime_ns_median": 60333.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4464,26 +4482,26 @@
                     "init_alloc_count": 29,
                     "init_bytes_allocated": 13120,
                     "init_flops": null,
-                    "init_runtime_ns_median": 1417.0,
-                    "init_runtime_ns_min": 1000.0,
+                    "init_runtime_ns_median": 1125.0,
+                    "init_runtime_ns_min": 667.0,
                     "init_runtime_ns_samples": [
-                        5542.0,
-                        1500.0,
-                        1000.0,
-                        1417.0,
-                        1125.0
+                        5208.0,
+                        1125.0,
+                        1167.0,
+                        750.0,
+                        667.0
                     ],
                     "iterate_alloc_count": 18,
                     "iterate_bytes_allocated": 6080,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4000.0,
-                    "iterate_runtime_ns_min": 3792.0,
+                    "iterate_runtime_ns_median": 3708.0,
+                    "iterate_runtime_ns_min": 3417.0,
                     "iterate_runtime_ns_samples": [
-                        17167.0,
-                        4208.0,
-                        4000.0,
-                        3834.0,
-                        3792.0
+                        12666.0,
+                        3625.0,
+                        3417.0,
+                        3708.0,
+                        3708.0
                     ],
                     "label": "rqi_lu",
                     "maxrss_delta_bytes": 0,
@@ -4496,39 +4514,40 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 4.750249863270327,
-                            "eigenvalue_abs_error": 8.881784197001252e-16,
+                            "eigenvalue": 4.750249863270326,
+                            "eigenvalue_abs_error": 2.6645352591003757e-15,
                             "eigenvector": [
-                                0.09317598504640191,
-                                -0.1593470689719646,
-                                0.06428704403482087,
-                                0.12334598894765364,
-                                -0.38234469619695854,
-                                0.441679939184914,
-                                -0.1767224865675034,
-                                0.15666114368264905,
-                                0.42673890147581284,
-                                0.0067995712151647705,
-                                -0.4128769812076811,
-                                0.255768414934767,
-                                -0.09548615239338747,
-                                0.20264836057173988,
-                                0.13786812997806938,
-                                -0.020892909364762114,
-                                -0.11942317965397523,
-                                0.11798294938518188,
-                                -0.02601148249550507,
-                                -0.18169680308162947
+                                0.09317598478372026,
+                                -0.15934706953873798,
+                                0.06428704392175615,
+                                0.12334598926061047,
+                                -0.38234469650332914,
+                                0.4416799389866729,
+                                -0.17672248666312432,
+                                0.1566611434909205,
+                                0.4267389013279474,
+                                0.0067995714496489335,
+                                -0.41287698135338097,
+                                0.2557684151454393,
+                                -0.09548615201971429,
+                                0.20264835997653974,
+                                0.13786812990350306,
+                                -0.020892910612354106,
+                                -0.11942317925356448,
+                                0.11798294957926488,
+                                -0.026011482351657508,
+                                -0.18169680309828132
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637405075135384e-10,
+                            "final_residual": 2.127209931299677e-15,
                             "gmres_iterations_per_step": [],
                             "gmres_iterations_total": 0,
                             "gmres_stalled_solves": 0,
@@ -4538,19 +4557,19 @@
                             "oracle_nearest_eigenvalue": 4.750249863270328,
                             "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739704448,
-                                5.637405075135384e-10
+                                8.816988986204027e-9,
+                                2.127209931299677e-15
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863270327
+                                4.7502498632703265,
+                                4.750249863270326
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
                         "gmres_iterations_total": 0,
                         "gmres_stalled_solves": 0,
@@ -4561,7 +4580,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 52125.0,
+                    "end_to_end_runtime_ns_median": 60708.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4570,26 +4589,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 4917.0,
-                    "init_runtime_ns_min": 3708.0,
+                    "init_runtime_ns_median": 2166.0,
+                    "init_runtime_ns_min": 1833.0,
                     "init_runtime_ns_samples": [
-                        29375.0,
-                        7167.0,
-                        3708.0,
-                        4541.0,
-                        4917.0
+                        13042.0,
+                        3333.0,
+                        2166.0,
+                        2125.0,
+                        1833.0
                     ],
-                    "iterate_alloc_count": 148,
-                    "iterate_bytes_allocated": 19088,
+                    "iterate_alloc_count": 147,
+                    "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4458.0,
-                    "iterate_runtime_ns_min": 4209.0,
+                    "iterate_runtime_ns_median": 3042.0,
+                    "iterate_runtime_ns_min": 2958.0,
                     "iterate_runtime_ns_samples": [
-                        12834.0,
-                        4458.0,
-                        4333.0,
-                        4209.0,
-                        5458.0
+                        9125.0,
+                        3333.0,
+                        3000.0,
+                        3042.0,
+                        2958.0
                     ],
                     "label": "rqi_gmres_input_prec",
                     "maxrss_delta_bytes": 0,
@@ -4602,67 +4621,68 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tol": 1.0e-10
                     },
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 4.750249863270327,
-                            "eigenvalue_abs_error": 8.881784197001252e-16,
+                            "eigenvalue": 4.750249863270328,
+                            "eigenvalue_abs_error": 0.0,
                             "eigenvector": [
-                                0.09317598504640193,
-                                -0.15934706897196455,
-                                0.06428704403482083,
-                                0.12334598894765393,
-                                -0.3823446961969586,
-                                0.44167993918491394,
-                                -0.1767224865675033,
-                                0.15666114368264922,
-                                0.4267389014758129,
-                                0.006799571215164843,
-                                -0.4128769812076811,
-                                0.2557684149347671,
-                                -0.09548615239338748,
-                                0.2026483605717397,
-                                0.13786812997806938,
-                                -0.02089290936476229,
-                                -0.11942317965397518,
-                                0.11798294938518183,
-                                -0.026011482495505157,
-                                -0.1816968030816295
+                                0.09317598478375765,
+                                -0.15934706953865746,
+                                0.06428704392177219,
+                                0.12334598926056586,
+                                -0.3823446965032856,
+                                0.44167993898670116,
+                                -0.17672248666311083,
+                                0.15666114349094773,
+                                0.4267389013279684,
+                                0.0067995714496155435,
+                                -0.4128769813533603,
+                                0.2557684151454092,
+                                -0.09548615201976746,
+                                0.2026483599766244,
+                                0.13786812990351366,
+                                -0.02089291061217657,
+                                -0.11942317925362139,
+                                0.11798294957923741,
+                                -0.02601148235167789,
+                                -0.1816968030982791
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637404929373887e-10,
+                            "final_residual": 8.020002589238518e-14,
                             "gmres_iterations_per_step": [
                                 1,
-                                3
+                                1
                             ],
-                            "gmres_iterations_total": 4,
-                            "gmres_stalled_solves": 0,
+                            "gmres_iterations_total": 2,
+                            "gmres_stalled_solves": 1,
                             "n_factorizations": 0,
                             "n_perturbations": 0,
                             "n_shifts": 2,
                             "oracle_nearest_eigenvalue": 4.750249863270328,
                             "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739703858,
-                                5.637404929373887e-10
+                                8.816988822594973e-9,
+                                8.020002589238518e-14
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863270327
+                                4.750249863270326,
+                                4.750249863270328
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
-                        "gmres_iterations_total": 4,
-                        "gmres_stalled_solves": 0,
+                        "gmres_iterations_total": 2,
+                        "gmres_stalled_solves": 1,
                         "n_factorizations": 1,
                         "n_perturbations": 0,
                         "n_shifts": 2,
@@ -4670,7 +4690,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 49834.0,
+                    "end_to_end_runtime_ns_median": 61833.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4679,26 +4699,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2375.0,
-                    "init_runtime_ns_min": 2250.0,
+                    "init_runtime_ns_median": 2000.0,
+                    "init_runtime_ns_min": 1875.0,
                     "init_runtime_ns_samples": [
-                        12500.0,
-                        3834.0,
-                        2250.0,
-                        2375.0,
-                        2375.0
+                        9250.0,
+                        2583.0,
+                        2000.0,
+                        1875.0,
+                        1959.0
                     ],
                     "iterate_alloc_count": 149,
                     "iterate_bytes_allocated": 19216,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4709.0,
-                    "iterate_runtime_ns_min": 4375.0,
+                    "iterate_runtime_ns_median": 4333.0,
+                    "iterate_runtime_ns_min": 4125.0,
                     "iterate_runtime_ns_samples": [
-                        13708.0,
-                        4917.0,
+                        11000.0,
+                        4333.0,
                         4375.0,
-                        4709.0,
-                        4583.0
+                        4125.0,
+                        4125.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.0)",
                     "maxrss_delta_bytes": 0,
@@ -4711,6 +4731,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.0,
                         "tol": 1.0e-10
@@ -4718,33 +4739,33 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 4.750249863270328,
-                            "eigenvalue_abs_error": 0.0,
+                            "eigenvalue": 4.750249863270326,
+                            "eigenvalue_abs_error": 2.6645352591003757e-15,
                             "eigenvector": [
-                                0.09317598504640191,
-                                -0.15934706897196457,
-                                0.06428704403482086,
-                                0.12334598894765361,
-                                -0.3823446961969585,
-                                0.44167993918491394,
-                                -0.17672248656750333,
-                                0.156661143682649,
-                                0.4267389014758128,
-                                0.006799571215164769,
-                                -0.41287698120768107,
-                                0.25576841493476693,
-                                -0.09548615239338745,
-                                0.20264836057173982,
-                                0.13786812997806938,
-                                -0.020892909364762107,
-                                -0.1194231796539752,
-                                0.11798294938518185,
-                                -0.026011482495505063,
-                                -0.18169680308162944
+                                0.09317598478372023,
+                                -0.15934706953873806,
+                                0.06428704392175613,
+                                0.12334598926061043,
+                                -0.3823446965033292,
+                                0.44167993898667285,
+                                -0.1767224866631243,
+                                0.1566611434909204,
+                                0.42673890132794723,
+                                0.006799571449648913,
+                                -0.41287698135338097,
+                                0.2557684151454393,
+                                -0.09548615201971422,
+                                0.20264835997653965,
+                                0.13786812990350306,
+                                -0.02089291061235428,
+                                -0.1194231792535644,
+                                0.11798294957926493,
+                                -0.026011482351657428,
+                                -0.1816968030982814
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637404674578821e-10,
+                            "final_residual": 2.251787453317122e-15,
                             "gmres_iterations_per_step": [
                                 1,
                                 1
@@ -4757,19 +4778,19 @@
                             "oracle_nearest_eigenvalue": 4.750249863270328,
                             "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739703858,
-                                5.637404674578821e-10
+                                8.816988822594973e-9,
+                                2.251787453317122e-15
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863270328
+                                4.750249863270326,
+                                4.750249863270326
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
                         "gmres_iterations_total": 2,
                         "gmres_stalled_solves": 0,
@@ -4780,7 +4801,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 53208.0,
+                    "end_to_end_runtime_ns_median": 60875.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4789,26 +4810,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 4875.0,
-                    "init_runtime_ns_min": 4292.0,
+                    "init_runtime_ns_median": 2125.0,
+                    "init_runtime_ns_min": 1958.0,
                     "init_runtime_ns_samples": [
-                        18000.0,
-                        5750.0,
-                        4292.0,
-                        4875.0,
-                        4417.0
+                        15875.0,
+                        2791.0,
+                        2125.0,
+                        2000.0,
+                        1958.0
                     ],
-                    "iterate_alloc_count": 148,
-                    "iterate_bytes_allocated": 19088,
+                    "iterate_alloc_count": 147,
+                    "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 5583.0,
-                    "iterate_runtime_ns_min": 4833.0,
+                    "iterate_runtime_ns_median": 3250.0,
+                    "iterate_runtime_ns_min": 3125.0,
                     "iterate_runtime_ns_samples": [
-                        23041.0,
-                        5917.0,
-                        5583.0,
-                        4833.0,
-                        5250.0
+                        8958.0,
+                        3125.0,
+                        3250.0,
+                        3167.0,
+                        3459.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.01)",
                     "maxrss_delta_bytes": 0,
@@ -4821,6 +4842,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.01,
                         "tol": 1.0e-10
@@ -4828,61 +4850,61 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 4.750249863270327,
-                            "eigenvalue_abs_error": 8.881784197001252e-16,
+                            "eigenvalue": 4.750249863270328,
+                            "eigenvalue_abs_error": 0.0,
                             "eigenvector": [
-                                0.09317598504640193,
-                                -0.15934706897196455,
-                                0.06428704403482083,
-                                0.12334598894765393,
-                                -0.3823446961969586,
-                                0.44167993918491394,
-                                -0.1767224865675033,
-                                0.15666114368264922,
-                                0.4267389014758129,
-                                0.006799571215164843,
-                                -0.4128769812076811,
-                                0.2557684149347671,
-                                -0.09548615239338748,
-                                0.2026483605717397,
-                                0.13786812997806938,
-                                -0.02089290936476229,
-                                -0.11942317965397518,
-                                0.11798294938518183,
-                                -0.026011482495505157,
-                                -0.1816968030816295
+                                0.09317598478375765,
+                                -0.15934706953865746,
+                                0.06428704392177219,
+                                0.12334598926056586,
+                                -0.3823446965032856,
+                                0.44167993898670116,
+                                -0.17672248666311083,
+                                0.15666114349094773,
+                                0.4267389013279684,
+                                0.0067995714496155435,
+                                -0.4128769813533603,
+                                0.2557684151454092,
+                                -0.09548615201976746,
+                                0.2026483599766244,
+                                0.13786812990351366,
+                                -0.02089291061217657,
+                                -0.11942317925362139,
+                                0.11798294957923741,
+                                -0.02601148235167789,
+                                -0.1816968030982791
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637404929373887e-10,
+                            "final_residual": 8.020002589238518e-14,
                             "gmres_iterations_per_step": [
                                 1,
-                                3
+                                1
                             ],
-                            "gmres_iterations_total": 4,
-                            "gmres_stalled_solves": 0,
+                            "gmres_iterations_total": 2,
+                            "gmres_stalled_solves": 1,
                             "n_factorizations": 0,
                             "n_perturbations": 0,
                             "n_shifts": 2,
                             "oracle_nearest_eigenvalue": 4.750249863270328,
                             "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739703858,
-                                5.637404929373887e-10
+                                8.816988822594973e-9,
+                                8.020002589238518e-14
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863270327
+                                4.750249863270326,
+                                4.750249863270328
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
-                        "gmres_iterations_total": 4,
-                        "gmres_stalled_solves": 0,
+                        "gmres_iterations_total": 2,
+                        "gmres_stalled_solves": 1,
                         "n_factorizations": 1,
                         "n_perturbations": 0,
                         "n_shifts": 2,
@@ -4890,7 +4912,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 49959.0,
+                    "end_to_end_runtime_ns_median": 60917.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -4899,26 +4921,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2542.0,
-                    "init_runtime_ns_min": 2417.0,
+                    "init_runtime_ns_median": 2167.0,
+                    "init_runtime_ns_min": 1875.0,
                     "init_runtime_ns_samples": [
-                        13875.0,
-                        3916.0,
-                        2417.0,
-                        2500.0,
-                        2542.0
+                        11042.0,
+                        2917.0,
+                        2167.0,
+                        2000.0,
+                        1875.0
                     ],
-                    "iterate_alloc_count": 148,
-                    "iterate_bytes_allocated": 19088,
+                    "iterate_alloc_count": 147,
+                    "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4667.0,
-                    "iterate_runtime_ns_min": 4333.0,
+                    "iterate_runtime_ns_median": 3250.0,
+                    "iterate_runtime_ns_min": 2959.0,
                     "iterate_runtime_ns_samples": [
-                        14250.0,
-                        4542.0,
-                        4958.0,
-                        4667.0,
-                        4333.0
+                        9083.0,
+                        3375.0,
+                        2959.0,
+                        3041.0,
+                        3250.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=0.1)",
                     "maxrss_delta_bytes": 0,
@@ -4931,6 +4953,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 0.1,
                         "tol": 1.0e-10
@@ -4938,61 +4961,61 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 4.750249863270327,
-                            "eigenvalue_abs_error": 8.881784197001252e-16,
+                            "eigenvalue": 4.750249863270328,
+                            "eigenvalue_abs_error": 0.0,
                             "eigenvector": [
-                                0.09317598504640193,
-                                -0.15934706897196455,
-                                0.06428704403482083,
-                                0.12334598894765393,
-                                -0.3823446961969586,
-                                0.44167993918491394,
-                                -0.1767224865675033,
-                                0.15666114368264922,
-                                0.4267389014758129,
-                                0.006799571215164843,
-                                -0.4128769812076811,
-                                0.2557684149347671,
-                                -0.09548615239338748,
-                                0.2026483605717397,
-                                0.13786812997806938,
-                                -0.02089290936476229,
-                                -0.11942317965397518,
-                                0.11798294938518183,
-                                -0.026011482495505157,
-                                -0.1816968030816295
+                                0.09317598478375765,
+                                -0.15934706953865746,
+                                0.06428704392177219,
+                                0.12334598926056586,
+                                -0.3823446965032856,
+                                0.44167993898670116,
+                                -0.17672248666311083,
+                                0.15666114349094773,
+                                0.4267389013279684,
+                                0.0067995714496155435,
+                                -0.4128769813533603,
+                                0.2557684151454092,
+                                -0.09548615201976746,
+                                0.2026483599766244,
+                                0.13786812990351366,
+                                -0.02089291061217657,
+                                -0.11942317925362139,
+                                0.11798294957923741,
+                                -0.02601148235167789,
+                                -0.1816968030982791
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637404929373887e-10,
+                            "final_residual": 8.020002589238518e-14,
                             "gmres_iterations_per_step": [
                                 1,
-                                3
+                                1
                             ],
-                            "gmres_iterations_total": 4,
-                            "gmres_stalled_solves": 0,
+                            "gmres_iterations_total": 2,
+                            "gmres_stalled_solves": 1,
                             "n_factorizations": 0,
                             "n_perturbations": 0,
                             "n_shifts": 2,
                             "oracle_nearest_eigenvalue": 4.750249863270328,
                             "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739703858,
-                                5.637404929373887e-10
+                                8.816988822594973e-9,
+                                8.020002589238518e-14
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863270327
+                                4.750249863270326,
+                                4.750249863270328
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
-                        "gmres_iterations_total": 4,
-                        "gmres_stalled_solves": 0,
+                        "gmres_iterations_total": 2,
+                        "gmres_stalled_solves": 1,
                         "n_factorizations": 1,
                         "n_perturbations": 0,
                         "n_shifts": 2,
@@ -5000,7 +5023,7 @@
                     }
                 },
                 {
-                    "end_to_end_runtime_ns_median": 50209.0,
+                    "end_to_end_runtime_ns_median": 60666.0,
                     "gc_time_ns_max": 0.0,
                     "init": {
                         "n_factorizations": 1,
@@ -5009,26 +5032,26 @@
                     "init_alloc_count": 46,
                     "init_bytes_allocated": 13856,
                     "init_flops": null,
-                    "init_runtime_ns_median": 2792.0,
-                    "init_runtime_ns_min": 2416.0,
+                    "init_runtime_ns_median": 2166.0,
+                    "init_runtime_ns_min": 1875.0,
                     "init_runtime_ns_samples": [
-                        15375.0,
-                        3958.0,
-                        2416.0,
-                        2792.0,
-                        2500.0
+                        9500.0,
+                        2666.0,
+                        2166.0,
+                        1958.0,
+                        1875.0
                     ],
-                    "iterate_alloc_count": 148,
-                    "iterate_bytes_allocated": 19088,
+                    "iterate_alloc_count": 147,
+                    "iterate_bytes_allocated": 18992,
                     "iterate_flops": null,
-                    "iterate_runtime_ns_median": 4667.0,
-                    "iterate_runtime_ns_min": 4417.0,
+                    "iterate_runtime_ns_median": 3000.0,
+                    "iterate_runtime_ns_min": 2834.0,
                     "iterate_runtime_ns_samples": [
-                        14625.0,
-                        4583.0,
-                        4667.0,
-                        4958.0,
-                        4417.0
+                        9333.0,
+                        3000.0,
+                        2917.0,
+                        3208.0,
+                        2834.0
                     ],
                     "label": "rqi_gmres_prev_prec (tau=1.0)",
                     "maxrss_delta_bytes": 0,
@@ -5041,6 +5064,7 @@
                         "inner_reltol": 1.0e-10,
                         "maxiter": 50,
                         "power_iters": 200,
+                        "search_shift": null,
                         "seed": 1234,
                         "tau": 1.0,
                         "tol": 1.0e-10
@@ -5048,61 +5072,61 @@
                     "starts": [
                         {
                             "converged": true,
-                            "eigenvalue": 4.750249863270327,
-                            "eigenvalue_abs_error": 8.881784197001252e-16,
+                            "eigenvalue": 4.750249863270328,
+                            "eigenvalue_abs_error": 0.0,
                             "eigenvector": [
-                                0.09317598504640193,
-                                -0.15934706897196455,
-                                0.06428704403482083,
-                                0.12334598894765393,
-                                -0.3823446961969586,
-                                0.44167993918491394,
-                                -0.1767224865675033,
-                                0.15666114368264922,
-                                0.4267389014758129,
-                                0.006799571215164843,
-                                -0.4128769812076811,
-                                0.2557684149347671,
-                                -0.09548615239338748,
-                                0.2026483605717397,
-                                0.13786812997806938,
-                                -0.02089290936476229,
-                                -0.11942317965397518,
-                                0.11798294938518183,
-                                -0.026011482495505157,
-                                -0.1816968030816295
+                                0.09317598478375765,
+                                -0.15934706953865746,
+                                0.06428704392177219,
+                                0.12334598926056586,
+                                -0.3823446965032856,
+                                0.44167993898670116,
+                                -0.17672248666311083,
+                                0.15666114349094773,
+                                0.4267389013279684,
+                                0.0067995714496155435,
+                                -0.4128769813533603,
+                                0.2557684151454092,
+                                -0.09548615201976746,
+                                0.2026483599766244,
+                                0.13786812990351366,
+                                -0.02089291061217657,
+                                -0.11942317925362139,
+                                0.11798294957923741,
+                                -0.02601148235167789,
+                                -0.1816968030982791
                             ],
                             "eigenvector_error": 0.0,
                             "fail_reason": "None",
-                            "final_residual": 5.637404929373887e-10,
+                            "final_residual": 8.020002589238518e-14,
                             "gmres_iterations_per_step": [
                                 1,
-                                3
+                                1
                             ],
-                            "gmres_iterations_total": 4,
-                            "gmres_stalled_solves": 0,
+                            "gmres_iterations_total": 2,
+                            "gmres_stalled_solves": 1,
                             "n_factorizations": 0,
                             "n_perturbations": 0,
                             "n_shifts": 2,
                             "oracle_nearest_eigenvalue": 4.750249863270328,
                             "outer_iterations": 2,
                             "residual_history": [
-                                0.0003867388739703858,
-                                5.637404929373887e-10
+                                8.816988822594973e-9,
+                                8.020002589238518e-14
                             ],
                             "shift_history": [
-                                4.750249396345644,
-                                4.750249863270327
+                                4.750249863270326,
+                                4.750249863270328
                             ],
-                            "sigma0": 4.746658575499131,
+                            "sigma0": 4.7502469431351555,
                             "start_index": 0
                         }
                     ],
                     "starts_flops": null,
-                    "starts_runtime_ns_median": 42750.0,
+                    "starts_runtime_ns_median": 55500.0,
                     "totals": {
-                        "gmres_iterations_total": 4,
-                        "gmres_stalled_solves": 0,
+                        "gmres_iterations_total": 2,
+                        "gmres_stalled_solves": 1,
                         "n_factorizations": 1,
                         "n_perturbations": 0,
                         "n_shifts": 2,
@@ -5111,17 +5135,17 @@
                 }
             ],
             "starts_benchmark": {
-                "alloc_count": 17,
-                "bytes_allocated": 1200,
+                "alloc_count": 24,
+                "bytes_allocated": 5312,
                 "flops": null,
-                "runtime_ns_median": 42750.0,
-                "runtime_ns_min": 42625.0,
+                "runtime_ns_median": 55500.0,
+                "runtime_ns_min": 51917.0,
                 "runtime_ns_samples": [
-                    51459.0,
-                    43000.0,
-                    42750.0,
-                    42625.0,
-                    42750.0
+                    67875.0,
+                    65542.0,
+                    55500.0,
+                    52625.0,
+                    51917.0
                 ]
             },
             "symmetric": true
@@ -5142,6 +5166,7 @@
             "out": "results/bench_largest.json",
             "power-iters": 200,
             "samples": 5,
+            "search-shift": null,
             "seed": 1234,
             "shift": null,
             "skip-oracle-vectors": false,
@@ -5175,6 +5200,6 @@
             "rqi_gmres_prev_prec (tau=1.0)"
         ],
         "os": "arm64-apple-darwin27.0.0",
-        "timestamp": "2026-11-19T15:31:00"
+        "timestamp": "2026-11-19T16:01:03"
     }
 }

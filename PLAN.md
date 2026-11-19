@@ -183,14 +183,17 @@ multiple starts per (matrix, method):
 - `--start-strategy rq`: single start, σ0 = RQ(v0) (original behavior).
 - `--start-strategy grid`: `--nstarts` σ0's spread evenly over the
   Gershgorin real-axis range (no oracle information used).
-- `--start-strategy largest`: v0 built from shifted power iterations on
-  `Â - lo·I` (where `Â = A`, or `Â = B\A` for a pencil — one dense solve in
-  the timed search phase; concentrates on the rightmost eigenvector — a
-  raw far-shift start was shown to land mid-spectrum), iterating until
-  the Rayleigh quotient stagnates or the `--power-iters` cap (default
-  200) is hit; σ0 = RQ(v0). For a nonsymmetric `A` whose rightmost
-  eigenvalues form a complex pair, use a complex `--eltype` so RQI can
-  converge to them.
+- `--start-strategy largest`: v0 built from shift-invert power iterations
+  on `(A - sB)⁻¹B` — one `lu(A - sB)` factorization plus O(n²) triangular
+  solves per iteration — whose dominant eigenpair is the pencil eigenpair
+  *nearest* `s`. `s` defaults to the right Gershgorin bound of `A`
+  (of `Â = B\A` when `B` is nonsingular); a singular `B` requires
+  `--search-shift` since the pencil has no finite right edge. Infinite
+  eigenvalues of a singular pencil lie in the kernel of the operator and
+  deflate automatically. Iterating stops when the eigenvalue estimate
+  stagnates or the `--power-iters` cap (default 200) is hit;
+  σ0 = generalized RQ(v0). If the eigenvalue nearest `s` is a complex
+  pair, use a complex `--eltype` so RQI can converge to it.
 
 Every run records `start_index` and `sigma0`. A per-matrix `coverage`
 section reports, per method label, how many oracle eigenvalues were hit by

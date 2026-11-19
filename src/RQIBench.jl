@@ -509,19 +509,23 @@ function gershgorin_bounds(A::AbstractMatrix)
 end
 
 """
-    build_starts(strategy, A, B = I; seed, nstarts, power_iters, shift) -> Vector{Tuple{Vector{T}, T}}
+    build_starts(strategy, A, B = I; seed, nstarts, power_iters, shift, search_shift) -> Vector{Tuple{Vector{T}, T}}
 
-Initial (v0, σ0) pairs. `grid` spreads `nstarts` shifts evenly across the
-Gershgorin real-axis range; `largest` builds `v0` from `power_iters`
-shifted power iterations on `A - lo*I` (whose dominant eigenpair is the one
-with the largest real part of `A`) and starts at `σ0 = RQ(v0)`. An explicit
-`shift` always forces a single start. Takes only concrete values — the CLI
-Dict is unpacked once at the call site so the (timed) search phase is
-type-stable.
+Initial (v0, σ0) pairs for the pencil `(A, B)`. `grid` spreads `nstarts`
+shifts evenly across the Gershgorin real-axis range of the standard-form
+problem `Â = B\\A` (requires nonsingular `B`); `largest` builds `v0` from
+`power_iters` shift-invert power iterations on `(A - sB)\\B`, whose
+dominant eigenpair is the pencil eigenpair nearest `s`, and starts at the
+generalized `σ0 = RQ(v0)`. `s` defaults to the right Gershgorin bound
+(of `A`, or of `Â` when `B` is nonsingular); a singular `B` requires
+`search_shift`. An explicit `shift` always forces a single start. Takes
+only concrete values — the CLI Dict is unpacked once at the call site so
+the (timed) search phase is type-stable.
 """
 function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
                       seed::Integer, nstarts::Integer, power_iters::Integer,
-                      shift::Union{Nothing,T} = nothing) where {T}
+                      shift::Union{Nothing,T} = nothing,
+                      search_shift::Union{Nothing,T} = nothing) where {T}
     n = size(A, 1)
     hasB = !(B isa UniformScaling && B.λ == one(T))
     if shift !== nothing || strategy == "rq"
@@ -535,41 +539,77 @@ function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
         end
         return [(v0, T(σ0))]
     end
-    # Shift placement and power iteration act on the standard-form problem
-    # Â = B\A (one dense solve in the timed search phase when B ≠ I).
-    Â = hasB ? B \ A : A
-    lo, hi = gershgorin_bounds(Â)
     if strategy == "largest"
-        # Power iteration on Â - lo·I: its eigenvalue of largest modulus is
-        # λmax(Â) - lo, so v0 concentrates on the rightmost eigenvector.
-        # Iterate until the Rayleigh quotient stagnates (a converged
-        # dominant eigenvector) or the cap is hit — a fixed small count
-        # under-converges when the spectral gap is small. For a nonsymmetric
-        # matrix whose rightmost eigenvalues are a complex pair, v0 can only
-        # reach the invariant 2-plane and the RQ oscillates; a complex
-        # --eltype is needed for RQI to converge to a complex λ.
+        # Shift-invert power iteration on C = (A - sB)\B: its dominant
+        # eigenvalue μ = 1/(λ - s) corresponds to the pencil eigenvalue
+        # nearest s, so s is the targeting knob — at/right of the spectral
+        # edge it picks out rightmost-λ. Singular B is fine: the infinite
+        # eigenvalues of the pencil lie in the kernel of C and deflate
+        # automatically. Iterate until the eigenvalue estimate stagnates
+        # (a converged dominant eigenvector) or the cap is hit. If the
+        # nearest eigenvalue is a complex pair and T is real, v0 can only
+        # reach the invariant 2-plane and the estimate oscillates; a
+        # complex --eltype is needed for RQI to converge to a complex λ.
+        s = if search_shift !== nothing
+            T(search_shift)
+        elseif hasB
+            FB = lu(B; check = false)
+            issuccess(FB) ||
+                error("start-strategy largest on a pencil with singular B " *
+                      "requires --search-shift")
+            gershgorin_bounds(FB \ A)[2]
+        else
+            gershgorin_bounds(A)[2]
+        end
+        s = T(s)
+        S = similar(A)
+        normA = opnorm(A, Inf)
+        shift_into!(S, A, B, s)
+        F = lu!(S; check = false)
+        for k in 1:3
+            issuccess(F) && break
+            s = _singular_perturb(s, normA, k)
+            shift_into!(S, A, B, s)
+            F = lu!(S; check = false)
+        end
+        issuccess(F) || error("largest: could not factorize A - sB near s=$s")
         v0 = rand(Xoshiro(seed), T, n)
         normalize!(v0)
         w = similar(v0)
-        Av = similar(v0)
-        scale = max(real(hi - lo), eps(real(T)))
-        mul!(Av, Â, v0)
-        rq = dot(v0, Av)
+        Bv = similar(v0)
+        scale = max(abs(s), one(real(T)))
+        λest = s
         for _ in 1:power_iters
-            # (Â - lo·I)·v0 without materializing the shifted matrix
-            mul!(w, Â, v0)
-            axpy!(-T(lo), v0, w)
+            mul!(Bv, B, v0)
+            ldiv!(w, F, Bv)          # w = C·v0
             nw = norm(w)
-            nw < eps(real(T)) && break   # λmax == lo, degenerate
+            nw < eps(real(T)) && break   # v0 in ker C ⊇ infinite eigenpairs
+            μ = dot(v0, w)              # RQ of C at v0
+            λest_new = s + inv(μ)
             @. v0 = w / nw
-            mul!(Av, Â, v0)
-            rq_new = dot(v0, Av)
-            abs(rq_new - rq) <= 1e-8 * scale && (rq = rq_new; break)
-            rq = rq_new
+            if isfinite(λest_new) && abs(λest_new - λest) <= 1e-8 * scale
+                λest = λest_new
+                break
+            end
+            λest = λest_new
         end
-        return [(v0, T(rq))]
+        # σ0 = generalized Rayleigh quotient of the final vector
+        mul!(w, A, v0)
+        mul!(Bv, B, v0)
+        return [(v0, T(dot(v0, w) / dot(v0, Bv)))]
     end
     strategy != "grid" && error("unknown start strategy: $strategy")
+    # Shift placement for `grid` acts on the standard-form problem
+    # Â = B\A (one dense solve in the timed search phase when B ≠ I).
+    Â = if hasB
+        FB = lu(B; check = false)
+        issuccess(FB) ||
+            error("start-strategy grid requires a nonsingular B")
+        FB \ A
+    else
+        A
+    end
+    lo, hi = gershgorin_bounds(Â)
     K = nstarts
     K < 1 && error("nstarts must be ≥ 1")
     σs = K == 1 ? [(lo + hi) / 2] : collect(range(lo, hi, K))

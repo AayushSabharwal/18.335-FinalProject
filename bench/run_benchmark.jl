@@ -153,13 +153,18 @@ function parse_cli()
             arg_type = Int
             default = 10
         "--power-iters"
-            help = "Cap on shifted power iterations used to build v0 for --start-strategy=largest (stops early once the Rayleigh quotient stagnates)"
+            help = "Cap on shift-invert power iterations used to build v0 for --start-strategy=largest (stops early once the eigenvalue estimate stagnates)"
             arg_type = Int
             default = 200
         "--shift"
             help = "Explicit initial shift σ0 (forces a single start)"
             arg_type = Float64
             default = NaN
+        "--search-shift"
+            help = "Shift-invert target s for --start-strategy largest " *
+                   "(required for pencils with singular B; parsed as eltype)"
+            arg_type = String
+            default = nothing
         "--tol"
             help = "Outer residual tolerance, relative to ||A||_Inf"
             arg_type = Float64
@@ -438,23 +443,30 @@ function main()
         # is type-stable in the timed path.
         strategy = args["start-strategy"]
         shift_arg = isnan(args["shift"]) ? nothing : T(args["shift"])
+        # parsed as ComplexF64 so "0.1+1.0im" is accepted; a nonzero imag
+        # part under a real --eltype fails at T(...) with InexactError.
+        ssearch_arg = args["search-shift"] === nothing ? nothing :
+                      T(parse(ComplexF64, args["search-shift"]))
         starts = build_starts(strategy, A, Bm;
                               seed = args["seed"],
                               nstarts = args["nstarts"],
                               power_iters = args["power-iters"],
-                              shift = shift_arg)
+                              shift = shift_arg,
+                              search_shift = ssearch_arg)
         starts_trial = run(@benchmarkable(
             build_starts($strategy, $A, $Bm;
                          seed = $(args["seed"]),
                          nstarts = $(args["nstarts"]),
                          power_iters = $(args["power-iters"]),
-                         shift = $shift_arg)
+                         shift = $shift_arg,
+                         search_shift = $ssearch_arg)
         ); samples = args["samples"], evals = 1)
         starts_flops = measure_flops() do
             build_starts(strategy, A, Bm; seed = args["seed"],
                          nstarts = args["nstarts"],
                          power_iters = args["power-iters"],
-                         shift = shift_arg)
+                         shift = shift_arg,
+                         search_shift = ssearch_arg)
         end
         match_tol = isnan(args["match-tol"]) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
@@ -528,6 +540,7 @@ function main()
                 "gmres_restart" => args["gmres-restart"],
                 "power_iters" => args["start-strategy"] == "largest" ?
                                  args["power-iters"] : 0,
+                "search_shift" => ssearch_arg,
                 "seed" => args["seed"],
             )
             m isa GMRESPrevPrec && (params["tau"] = m.tau)
