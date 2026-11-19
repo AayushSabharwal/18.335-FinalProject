@@ -210,7 +210,7 @@ _sanitize(x::AbstractVector) = [_sanitize(v) for v in x]
 _sanitize(x::AbstractMatrix) = [_sanitize(collect(r)) for r in eachrow(x)]
 _sanitize(d::AbstractDict) = Dict(k => _sanitize(v) for (k, v) in pairs(d))
 
-function run_entry_dict(r::RQIResult, label, start_index, trial,
+function run_entry_dict(r::RQIResult, label, start_index, trial, init_trial,
                         maxrss_delta, oracle_F, params)
     i, λo, u = nearest_oracle(oracle_F, r.eigenvalue)
     c = r.counters
@@ -228,12 +228,21 @@ function run_entry_dict(r::RQIResult, label, start_index, trial,
         "gmres_iterations_total" => c.gmres_iters_total,
         "gmres_stalled_solves" => c.gmres_stalled,
         "gmres_iterations_per_step" => c.gmres_iters_per_step,
+        # init: state setup (buffers, caches, first factorization)
+        "init_runtime_ns_median" => median(init_trial.times),
+        "init_runtime_ns_min" => minimum(init_trial.times),
+        "init_runtime_ns_samples" => init_trial.times,
+        "init_bytes_allocated" => init_trial.memory,
+        "init_alloc_count" => init_trial.allocs,
+        # iterate: the outer RQI loop only (init excluded)
         "runtime_ns_median" => median(trial.times),
         "runtime_ns_min" => minimum(trial.times),
         "runtime_ns_samples" => trial.times,
         "gc_time_ns_max" => maximum(trial.gctimes),
         "bytes_allocated" => trial.memory,
         "alloc_count" => trial.allocs,
+        "total_runtime_ns_median" =>
+            median(init_trial.times) + median(trial.times),
         "maxrss_delta_bytes" => maxrss_delta,
         "eigenvalue" => r.eigenvalue,
         "eigenvector" => r.eigenvector,
@@ -373,28 +382,43 @@ function main()
                 "seed" => args["seed"], "sigma0" => σ0,
             )
             m isa GMRESPrevPrec && (params["tau"] = m.tau)
+            v0n = normalize(Vector{T}(v0))
+            σ0t = T(σ0)
             # Deterministic run: captures the eigenpair + counters.
-            result = run_rqi(m, A; v0 = v0, σ0 = σ0, tol = args["tol"],
-                             maxiter = args["maxiter"],
-                             inner_reltol = args["inner-reltol"],
-                             inner_abstol = args["inner-abstol"],
-                             inner_maxiter = args["inner-maxiter"],
-                             gmres_restart = args["gmres-restart"])
+            st = init_state(m, A, σ0t, v0n, normA;
+                            inner_reltol = args["inner-reltol"],
+                            inner_abstol = args["inner-abstol"],
+                            inner_maxiter = args["inner-maxiter"],
+                            gmres_restart = args["gmres-restart"])
+            result = run_rqi!(st, A, v0n, σ0t; tol = args["tol"],
+                              maxiter = args["maxiter"])
             rss0 = Sys.maxrss()
+            # Init phase: state + first factorization.
+            init_trial = run(@benchmarkable(
+                init_state($m, $A, $σ0t, $v0n, $normA;
+                           inner_reltol = $(args["inner-reltol"]),
+                           inner_abstol = $(args["inner-abstol"]),
+                           inner_maxiter = $(args["inner-maxiter"]),
+                           gmres_restart = $(args["gmres-restart"]))
+            ); samples = args["samples"], evals = 1)
+            # Iterate phase only: setup= builds a fresh state per sample,
+            # untimed, so init/alloc cost doesn't leak into this trial.
             trial = run(@benchmarkable(
-                run_rqi($m, $A; v0 = $v0, σ0 = $σ0, tol = $(args["tol"]),
-                        maxiter = $(args["maxiter"]),
-                        inner_reltol = $(args["inner-reltol"]),
-                        inner_abstol = $(args["inner-abstol"]),
-                        inner_maxiter = $(args["inner-maxiter"]),
-                        gmres_restart = $(args["gmres-restart"]))
+                run_rqi!(st_, $A, $v0n, $σ0t; tol = $(args["tol"]),
+                         maxiter = $(args["maxiter"]));
+                setup = (st_ = init_state($m, $A, $σ0t, $v0n, $normA;
+                           inner_reltol = $(args["inner-reltol"]),
+                           inner_abstol = $(args["inner-abstol"]),
+                           inner_maxiter = $(args["inner-maxiter"]),
+                           gmres_restart = $(args["gmres-restart"])))
             ); samples = args["samples"], evals = 1)
             push!(entry["runs"],
-                  run_entry_dict(result, label, si - 1, trial,
+                  run_entry_dict(result, label, si - 1, trial, init_trial,
                                  Sys.maxrss() - rss0, F, params))
             push!(results, (label, result))
             total_times[label] =
-                get(total_times, label, 0.0) + median(trial.times)
+                get(total_times, label, 0.0) +
+                median(init_trial.times) + median(trial.times)
             println(stderr, "$(result.converged ? "converged" : "FAILED") " *
                           "iters=$(result.counters.outer_iters) " *
                           "facs=$(result.counters.n_factorizations) " *

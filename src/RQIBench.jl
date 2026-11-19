@@ -20,9 +20,9 @@ using Printf
 using Random
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
-       RQICounters, RQIResult, run_rqi, run_oracle, load_matrix,
-       method_tag, nearest_oracle, eigenvector_error, gershgorin_bounds,
-       sanity_check
+       RQICounters, RQIResult, run_rqi, run_rqi!, init_state, run_oracle,
+       load_matrix, method_tag, nearest_oracle, eigenvector_error,
+       gershgorin_bounds, sanity_check
 
 # ---------------------------------------------------------------------------
 # Methods
@@ -89,13 +89,13 @@ end
 # Internal solver state
 # ---------------------------------------------------------------------------
 
-const DenseLU{T} = LU{T,Matrix{T},Vector{Int64}}
+const DenseLU{T} = LU{T,Matrix{T},Vector{LinearAlgebra.BlasInt}}
 
 mutable struct SolverState{M,C,T,R<:Real}
     method::M
     cache::C                            # LinearSolve LinearCache
     S::Matrix{T}                        # workspace for the shifted matrix A - σI
-    prec::Ref{Union{Nothing,DenseLU{T}}}  # current preconditioner (GMRES methods)
+    prec::Union{Nothing,DenseLU{T}}     # preconditioner; refactored in place
     σ_solve::T                          # shift used by the most recent solve
     σ_fac::T                            # shift of the most recent factorization
     normA::R
@@ -113,18 +113,22 @@ function _singular_perturb(σ::T, normA::Real, k = 1) where {T<:Number}
     return T(σ + s * eps(normA) * max(abs(σ), normA) * 8^(k - 1))
 end
 
-"""Factorize `S` with dense LU, nudging the shift if the matrix is singular."""
-function _factorize_shifted!(cnt, S::Matrix{T}, A, σ::T, normA) where {T}
-    F = lu(S; check = false)
+"""Factorize `A - σI` in place into `F.factors`/`F.ipiv` via `getrf!`,
+nudging the shift if the matrix is singular. `F` keeps its identity (so
+references held elsewhere, e.g. a preconditioner slot, see the new
+contents); returns the possibly perturbed σ."""
+function _factorize_shifted!(cnt, F::DenseLU{T}, A, σ::T, normA) where {T}
+    info = zero(LinearAlgebra.BlasInt)
     attempts = 0
-    while !issuccess(F) && attempts < 3
-        σ = _singular_perturb(σ, normA, attempts + 1)
-        shift_into!(S, A, σ)
-        F = lu(S; check = false)
-        cnt.n_perturbations += 1
+    while attempts == 0 || (info > 0 && attempts < 4)
+        shift_into!(F.factors, A, σ)
+        _, _, info = LAPACK.getrf!(F.factors, F.ipiv; check = false)
         attempts += 1
+        info > 0 || break
+        σ = _singular_perturb(σ, normA, attempts)
+        cnt.n_perturbations += 1
     end
-    return F, σ
+    return σ
 end
 
 function _new_cache(Ashift, b, ::Union{FixedShiftLU,RefactorLU}; kwargs...)
@@ -132,16 +136,17 @@ function _new_cache(Ashift, b, ::Union{FixedShiftLU,RefactorLU}; kwargs...)
     init(prob, LUFactorization(); verbose = false)
 end
 
+# The precs closure captures `prec` itself: the factorization is updated
+# in place by _factorize_shifted!, so the reference LinearSolve stores as
+# Pl always sees current contents — no indirection needed.
 function _new_cache(Ashift::Matrix{T}, b, ::Union{GMRESInputPrec,GMRESPrevPrec},
                     prec::DenseLU{T}; inner_reltol, inner_abstol,
                     inner_maxiter, gmres_restart) where {T}
-    prec_ref = Ref{Union{Nothing,DenseLU{T}}}(prec)
     alg = KrylovJL_GMRES(gmres_restart = gmres_restart;
-                         precs = (A_, p_) -> (prec_ref[], LinearAlgebra.I))
+                         precs = (A_, p_) -> (prec, LinearAlgebra.I))
     prob = LinearProblem(Ashift, b)
-    cache = init(prob, alg; reltol = inner_reltol, abstol = inner_abstol,
-                 maxiters = inner_maxiter, verbose = false)
-    return cache, prec_ref
+    return init(prob, alg; reltol = inner_reltol, abstol = inner_abstol,
+                maxiters = inner_maxiter, verbose = false)
 end
 
 function init_state(method::Union{FixedShiftLU,RefactorLU}, A::Matrix{T}, σ0::T,
@@ -151,8 +156,8 @@ function init_state(method::Union{FixedShiftLU,RefactorLU}, A::Matrix{T}, σ0::T
     shift_into!(S, A, σ0)
     cache = _new_cache(copy(S), copy(v), method)
     cnt.n_factorizations = 1
-    return SolverState(method, cache, S, Ref{Union{Nothing,DenseLU{T}}}(nothing),
-                       σ0, σ0, normA, get(kwargs, :inner_maxiter, 0), cnt, false)
+    return SolverState(method, cache, S, nothing, σ0, σ0, normA,
+                       get(kwargs, :inner_maxiter, 0), cnt, false)
 end
 
 function init_state(method::Union{GMRESInputPrec,GMRESPrevPrec}, A::Matrix{T},
@@ -161,13 +166,14 @@ function init_state(method::Union{GMRESInputPrec,GMRESPrevPrec}, A::Matrix{T},
     cnt = RQICounters{T}()
     n = size(A, 1)
     S = similar(A)
-    F, σf = _factorize_shifted!(cnt, shift_into!(S, A, σ0), A, σ0, normA)
-    cache, prec_ref = _new_cache(copy(S), copy(v), method, F;
-                               inner_reltol, inner_abstol,
-                               inner_maxiter = inner_maxiter <= 0 ? n : inner_maxiter,
-                               gmres_restart)
+    F = lu(shift_into!(S, A, σ0); check = false)
+    σf = issuccess(F) ? σ0 : _factorize_shifted!(cnt, F, A, σ0, normA)
+    cache = _new_cache(copy(S), copy(v), method, F;
+                       inner_reltol, inner_abstol,
+                       inner_maxiter = inner_maxiter <= 0 ? n : inner_maxiter,
+                       gmres_restart)
     cnt.n_factorizations = 1
-    return SolverState(method, cache, S, prec_ref, σ0, σf, normA,
+    return SolverState(method, cache, S, F, σ0, σf, normA,
                        inner_maxiter <= 0 ? n : inner_maxiter, cnt, false)
 end
 
@@ -177,18 +183,11 @@ end
 
 # --- direct LU -------------------------------------------------------------
 
-function solve_step!(st::SolverState{<:Union{FixedShiftLU,RefactorLU}}, A, σ, v)
+# Shared direct-LU solve loop with singular-shift perturbation. `cache.A =`
+# assignment marks the cache isfresh → the next solve! refactorizes; no
+# reinit! needed.
+function _solve_direct!(st, A, σsolve, v)
     cnt = st.counters
-    # FixedShiftLU keeps solving at the (possibly perturbed) initial shift and
-    # never touches cache.A, so the init-time factorization is reused. Any
-    # other variant refactorizes whenever the solve shift moved.
-    σsolve = st.method isa FixedShiftLU ? st.σ_solve : σ
-    if σsolve != st.σ_solve
-        cnt.n_shifts += 1
-        shift_into!(st.S, A, σsolve)
-        st.cache.A = st.S          # flags isfresh → refactorizes on solve
-        cnt.n_factorizations += 1
-    end
     for attempt in 1:3
         st.cache.b = v
         sol = solve!(st.cache)
@@ -206,6 +205,24 @@ function solve_step!(st::SolverState{<:Union{FixedShiftLU,RefactorLU}}, A, σ, v
     return nothing, 0, false
 end
 
+# FixedShiftLU keeps solving at the (possibly perturbed) initial shift and
+# never touches cache.A outside the perturbation path — the init-time
+# factorization is reused.
+solve_step!(st::SolverState{<:FixedShiftLU}, A, σ, v) =
+    _solve_direct!(st, A, st.σ_solve, v)
+
+# RefactorLU refactorizes whenever the solve shift moved.
+function solve_step!(st::SolverState{<:RefactorLU}, A, σ, v)
+    cnt = st.counters
+    if σ != st.σ_solve
+        cnt.n_shifts += 1
+        shift_into!(st.S, A, σ)
+        st.cache.A = st.S
+        cnt.n_factorizations += 1
+    end
+    return _solve_direct!(st, A, σ, v)
+end
+
 # --- GMRES -----------------------------------------------------------------
 
 """
@@ -217,9 +234,7 @@ function _maybe_refactor_prec!(st::SolverState{<:GMRESPrevPrec}, A, σ)
     cnt = st.counters
     scale = max(abs(st.σ_fac), st.normA)
     if st.stall_next || abs(σ - st.σ_fac) > st.method.tau * scale
-        F, σf = _factorize_shifted!(cnt, shift_into!(st.S, A, σ), A, σ, st.normA)
-        st.prec[] = F
-        st.σ_fac = σf
+        st.σ_fac = _factorize_shifted!(cnt, st.prec, A, σ, st.normA)
         cnt.n_factorizations += 1
         st.stall_next = false
         return true
@@ -255,30 +270,19 @@ end
 # ---------------------------------------------------------------------------
 
 """
-    run_rqi(method, A; v0, σ0, tol, maxiter, inner_reltol, inner_abstol,
-            inner_maxiter, gmres_restart) -> RQIResult
+    run_rqi!(st::SolverState, A, v0, σ0; tol, maxiter) -> RQIResult
 
-Run one eigenpair iteration: solves for a single eigenpair and stops when
-`||Av - σv|| ≤ tol·||A||_∞` (or `maxiter` is hit). For [`FixedShiftLU`](@ref)
-the solve shift is frozen at `σ0` while `σ` still tracks the Rayleigh
-quotient for reporting. Generic over the element type `T` of `A`.
+The outer eigenpair iteration on a prepared [`init_state`](@ref): solves
+for a single eigenpair and stops when `||Av - σv|| ≤ tol·||A||_∞` (or
+`maxiter` is hit). Splitting this from `init_state` lets the benchmark time
+state/factorization setup separately from the iteration itself.
 """
-function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
-                 v0::AbstractVector, σ0::Number,
-                 tol::Real = 1e-10, maxiter::Integer = 50,
-                 inner_reltol::Real = 1e-10, inner_abstol::Real = 0,
-                 inner_maxiter::Integer = 0, gmres_restart::Integer = 0) where {T<:Number}
-    A = Matrix{T}(A)
-    n = size(A, 1)
-    normA = opnorm(A, Inf)
+function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T},
+                  v0::AbstractVector, σ0::Number;
+                  tol::Real = 1e-10, maxiter::Integer = 50) where {T<:Number}
+    normA = st.normA
     v = normalize(Vector{T}(v0))
     σ = T(σ0)
-    rt = real(T)
-    st = init_state(method, A, σ, v, normA;
-                    inner_reltol = rt(inner_reltol),
-                    inner_abstol = rt(inner_abstol),
-                    inner_maxiter = Int(inner_maxiter),
-                    gmres_restart = Int(gmres_restart))
     cnt = st.counters
 
     converged = false
@@ -311,7 +315,34 @@ function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
         end
     end
 
-    return RQIResult(method_tag(method), σ, v, res, converged, fail_reason, cnt)
+    return RQIResult(method_tag(st.method), σ, v, res, converged, fail_reason, cnt)
+end
+
+"""
+    run_rqi(method, A; v0, σ0, tol, maxiter, inner_reltol, inner_abstol,
+            inner_maxiter, gmres_restart) -> RQIResult
+
+One-call convenience wrapper: [`init_state`](@ref) + [`run_rqi!`](@ref).
+For [`FixedShiftLU`](@ref) the solve shift is frozen at `σ0` while `σ`
+still tracks the Rayleigh quotient for reporting. Generic over the element
+type `T` of `A`.
+"""
+function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
+                 v0::AbstractVector, σ0::Number,
+                 tol::Real = 1e-10, maxiter::Integer = 50,
+                 inner_reltol::Real = 1e-10, inner_abstol::Real = 0,
+                 inner_maxiter::Integer = 0, gmres_restart::Integer = 0) where {T<:Number}
+    A = Matrix{T}(A)
+    normA = opnorm(A, Inf)
+    v = normalize(Vector{T}(v0))
+    σ = T(σ0)
+    rt = real(T)
+    st = init_state(method, A, σ, v, normA;
+                    inner_reltol = rt(inner_reltol),
+                    inner_abstol = rt(inner_abstol),
+                    inner_maxiter = Int(inner_maxiter),
+                    gmres_restart = Int(gmres_restart))
+    return run_rqi!(st, A, v, σ; tol = tol, maxiter = maxiter)
 end
 
 # ---------------------------------------------------------------------------
