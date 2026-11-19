@@ -145,11 +145,17 @@ function main()
                   GMRESPrevPrec(0.0), GMRESPrevPrec(0.1)]
     for m in methods
         tag = method_tag(m) * (m isa GMRESPrevPrec ? " (tau=$(m.tau))" : "")
-        r = run_rqi(m, A; v0 = v0, σ0 = σ0)          # warmup + measure
-        t1 = @elapsed run_rqi(m, A; v0 = v0, σ0 = σ0)
+        normA = opnorm(A, Inf)
+        # iterate phase only: state built once (untimed), reset per rep —
+        # the same loop the benchmark times
+        st = init_state(m, A, σ0, v0, normA;
+                        inner_reltol = 1e-10, inner_abstol = 0.0,
+                        inner_maxiter = 0, gmres_restart = 0)
+        iter() = (reset_state!(st, A, σ0); run_rqi!(st, A, v0, σ0))
+        r = iter()                                    # warmup + measure
+        t1 = @elapsed iter()
         reps = clamp(ceil(Int, 2.5 / max(t1, 1e-4)), 3, 20000)
-        counts, total, t = profile_loop(() -> run_rqi(m, A; v0 = v0, σ0 = σ0),
-                                        reps)
+        counts, total, t = profile_loop(iter, reps)
         report("$tag [conv=$(r.converged) iters=$(r.counters.outer_iters) " *
                "facs=$(r.counters.n_factorizations) " *
                "gmres=$(r.counters.gmres_iters_total)]",
