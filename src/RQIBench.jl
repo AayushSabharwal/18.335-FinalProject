@@ -74,8 +74,17 @@ mutable struct RQICounters{T,R<:Real}
     residual_history::Vector{R}
 end
 
-RQICounters{T}() where {T} =
-    RQICounters{T,real(T)}(0, 0, 0, 0, 0, 0, Int[], T[], real(T)[])
+const HISTORY_CAPACITY = 1000
+
+# Pre-size the history vectors at construction so `run_rqi!` sees no
+# capacity effects; covers init_state and every reset_state! rebuild.
+function RQICounters{T}() where {T}
+    cnt = RQICounters{T,real(T)}(0, 0, 0, 0, 0, 0, Int[], T[], real(T)[])
+    sizehint!(cnt.gmres_iters_per_step, HISTORY_CAPACITY)
+    sizehint!(cnt.shift_history, HISTORY_CAPACITY)
+    sizehint!(cnt.residual_history, HISTORY_CAPACITY)
+    return cnt
+end
 
 """Why a [`run_rqi!`](@ref) call stopped without (or with) convergence."""
 @enumx RQIFail begin
@@ -345,9 +354,6 @@ function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T}, B,
     mul!(Bv, B, v)              # RHS of the first shifted solve
     σ = T(σ0)
     cnt = st.counters
-    sizehint!(cnt.shift_history, maxiter)
-    sizehint!(cnt.residual_history, maxiter)
-    sizehint!(cnt.gmres_iters_per_step, maxiter)
 
     converged = false
     fail_reason = RQIFail.None
