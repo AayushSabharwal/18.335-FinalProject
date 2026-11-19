@@ -11,7 +11,7 @@
       "type": "object",
       "required": [
         "timestamp", "julia_version", "os", "blas_config",
-        "blas_threads", "args", "eltype", "methods"
+        "blas_threads", "args", "eltype", "methods", "machine", "flops"
       ],
       "properties": {
         "timestamp": {
@@ -40,6 +40,23 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "method_label for each method run, in run order"
+        },
+        "machine": { "$ref": "#/$defs/machine" },
+        "flops": {
+          "type": "object",
+          "description": "FLOP instrumentation status for this run",
+          "required": ["instrumented", "group"],
+          "properties": {
+            "instrumented": {
+              "type": "boolean",
+              "description": "Whether LIKWID.jl was loaded and initialized (Linux only)"
+            },
+            "group": {
+              "type": ["string", "null"],
+              "description": "LIKWID performance group used, e.g. FLOPS_DP; null when not instrumented"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -50,6 +67,62 @@
     }
   },
   "$defs": {
+    "machine": {
+      "type": "object",
+      "description": "Hardware/OS the benchmark ran on",
+      "required": [
+        "arch", "cpu_model", "cpu_threads", "kernel", "hostname"
+      ],
+      "properties": {
+        "arch": {
+          "type": "string",
+          "description": "Sys.ARCH, e.g. aarch64, x86_64"
+        },
+        "cpu_model": {
+          "type": "string",
+          "description": "First Sys.cpu_info() model string"
+        },
+        "cpu_threads": {
+          "type": "integer", "minimum": 1,
+          "description": "Sys.CPU_THREADS (logical cores visible to Julia)"
+        },
+        "kernel": {
+          "type": "string",
+          "description": "uname -sr, or Sys.KERNEL when uname is unavailable"
+        },
+        "hostname": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "flops": {
+      "description": "LIKWID FLOPS_DP perfmon measurement of one pass of a phase; null when LIKWID.jl is unavailable (non-Linux, not installed, or measurement failed).",
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["group", "dp_flops", "metrics", "events"],
+          "properties": {
+            "group": {
+              "type": "string",
+              "description": "LIKWID performance group, e.g. FLOPS_DP"
+            },
+            "dp_flops": {
+              "type": ["number", "null"],
+              "description": "Best-effort double-precision flop count derived from the metrics; null when not derivable"
+            },
+            "metrics": {
+              "type": ["object", "null"],
+              "description": "Raw LIKWID metrics dict (group -> metric -> value)"
+            },
+            "events": {
+              "type": ["object", "null"],
+              "description": "Raw LIKWID event counts dict"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "scalar": {
       "description": "A value of the matrix element type: number for real T, {re,im} for complex T; null if non-finite.",
       "anyOf": [
@@ -77,7 +150,7 @@
       "type": "object",
       "description": "BenchmarkTools trial summary",
       "required": [
-        "runtime_ns_median", "runtime_ns_min", "runtime_ns_samples"
+        "runtime_ns_median", "runtime_ns_min", "runtime_ns_samples", "flops"
       ],
       "properties": {
         "runtime_ns_median": { "type": ["number", "null"] },
@@ -87,7 +160,8 @@
           "items": { "type": ["number", "null"] }
         },
         "bytes_allocated": { "type": "integer", "minimum": 0 },
-        "alloc_count": { "type": "integer", "minimum": 0 }
+        "alloc_count": { "type": "integer", "minimum": 0 },
+        "flops": { "$ref": "#/$defs/flops" }
       },
       "additionalProperties": false
     },
@@ -127,7 +201,8 @@
       "required": [
         "eltype", "runtime_ns_median", "runtime_ns_min",
         "runtime_ns_samples", "gc_time_ns_max", "bytes_allocated",
-        "alloc_count", "maxrss_delta_bytes", "eigenvalues", "eigenvectors"
+        "alloc_count", "maxrss_delta_bytes", "eigenvalues", "eigenvectors",
+        "flops"
       ],
       "properties": {
         "eltype": {
@@ -151,7 +226,8 @@
             { "$ref": "#/$defs/scalar_matrix" }
           ],
           "description": "Column-flattened eigenvector matrix; null when --skip-oracle-vectors"
-        }
+        },
+        "flops": { "$ref": "#/$defs/flops" }
       },
       "additionalProperties": false
     },
@@ -161,6 +237,7 @@
       "required": [
         "method", "label", "params", "n_starts", "init", "totals",
         "starts_runtime_ns_median",
+        "starts_flops", "init_flops", "iterate_flops",
         "init_runtime_ns_median", "init_runtime_ns_min",
         "init_runtime_ns_samples", "init_bytes_allocated",
         "init_alloc_count",
@@ -238,6 +315,9 @@
           "type": ["number", "null"],
           "description": "Shared search-phase (build_starts) cost, timed once per matrix"
         },
+        "starts_flops": { "$ref": "#/$defs/flops" },
+        "init_flops": { "$ref": "#/$defs/flops" },
+        "iterate_flops": { "$ref": "#/$defs/flops" },
         "init_runtime_ns_median": { "type": ["number", "null"] },
         "init_runtime_ns_min": { "type": ["number", "null"] },
         "init_runtime_ns_samples": {

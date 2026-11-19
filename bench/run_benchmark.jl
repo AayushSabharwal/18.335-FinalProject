@@ -13,6 +13,117 @@ using Printf
 include(joinpath(@__DIR__, "..", "src", "RQIBench.jl"))
 using .RQIBench
 
+# ---------------------------------------------------------------------------
+# Optional FLOP instrumentation via LIKWID.jl (Linux only)
+# ---------------------------------------------------------------------------
+# LIKWID.jl is intentionally NOT a project dependency: it only works on
+# Linux (perf_event / access-daemon permissions), so it is loaded
+# opportunistically. To enable: `Pkg.add("LIKWID")` on a Linux machine,
+# then run this driver as usual — each phase's `flops` entry in the JSON
+# contains a FLOPS_DP perfmon measurement of one dedicated pass.
+
+const FLOPS_GROUP = "FLOPS_DP"
+
+# LIKWID.jl is intentionally NOT a project dependency: it only works on
+# Linux (perf_event / access-daemon permissions), and must not be loaded —
+# or even parsed for its macros — on other platforms or when absent.
+# `find_package` runs at parse time inside @static, so this `using` is
+# only spliced in where LIKWID is actually installed. To enable:
+# `Pkg.add("LIKWID")` on a Linux machine, then run this driver as usual.
+@static if Sys.islinux() && !isnothing(Base.find_package("LIKWID"))
+    using LIKWID
+end
+
+const HAVE_LIKWID = if isdefined(@__MODULE__, :LIKWID)
+    try
+        LIKWID.init()
+        true
+    catch err
+        @warn "LIKWID.init() failed; FLOP counters disabled" exception = err
+        false
+    end
+else
+    false
+end
+
+"""JSON-safe conversion for LIKWID's nested (ordered) dicts."""
+_json_safe(x::AbstractDict) =
+    Dict{String,Any}(string(k) => _json_safe(v) for (k, v) in pairs(x))
+_json_safe(x::AbstractVector) = Any[_json_safe(v) for v in x]
+_json_safe(x::AbstractFloat) = isfinite(x) ? x : nothing
+_json_safe(x::Union{Integer,Bool,Nothing,AbstractString}) = x
+_json_safe(x) = string(x)
+
+_mval(m::AbstractDict, k) = let v = get(m, k, nothing)
+    v isa AbstractVector ? sum(v) : (v isa Real ? Float64(v) : nothing)
+end
+_mval(m, k) = nothing
+
+"""Best-effort DP flop count from FLOPS_DP metrics: a rate metric times
+runtime, or a direct DP [MFLOP] metric when the group provides one."""
+function _extract_dp_flops(metrics)
+    metrics isa AbstractDict || return nothing
+    for m in values(metrics)
+        m isa AbstractDict || continue
+        rate = _mval(m, "DP MFLOP/s")
+        rate === nothing && (rate = _mval(m, "DP [MFLOP/s]"))
+        if rate !== nothing
+            rt = _mval(m, "Runtime (RDTSC) [s]")
+            rt === nothing && (rt = _mval(m, "Runtime unhalted [s]"))
+            rt !== nothing && return rate * rt * 1e6
+        end
+        mf = _mval(m, "DP [MFLOP]")
+        mf !== nothing && return mf * 1e6
+    end
+    return nothing
+end
+
+# @static picks the definition at parse time: the @perfmon macrocall is
+# only ever expanded on the branch where LIKWID is loaded, so this file
+# still parses on machines without it.
+@static if HAVE_LIKWID
+    function measure_flops(f)
+        try
+            metrics, events = LIKWID.@perfmon "FLOPS_DP" begin
+                f()
+            end
+            return Dict{String,Any}(
+                "group" => FLOPS_GROUP,
+                "dp_flops" => _extract_dp_flops(metrics),
+                "metrics" => _json_safe(metrics),
+                "events" => _json_safe(events),
+            )
+        catch err
+            @warn "LIKWID FLOP measurement failed; recording null" exception =
+                (err, catch_backtrace())
+            return nothing
+        end
+    end
+else
+    measure_flops(f) = nothing
+end
+
+"""Hardware/OS description for the output's meta section."""
+function machine_info()
+    cpu_model = try
+        Sys.cpu_info()[1].model
+    catch
+        "unknown"
+    end
+    kernel = try
+        readchomp(`uname -sr`)
+    catch
+        string(Sys.KERNEL)
+    end
+    return Dict{String,Any}(
+        "arch" => string(Sys.ARCH),
+        "cpu_model" => cpu_model,
+        "cpu_threads" => Sys.CPU_THREADS,
+        "kernel" => kernel,
+        "hostname" => gethostname(),
+    )
+end
+
 const ELTYPE_MAP = Dict(
     "Float16" => Float16,
     "Float32" => Float32,
@@ -245,7 +356,8 @@ end
 (same SolverState reset between them), plus the per-start results."""
 function run_entry_dict(label, params, results::Vector{RQIResult}, starts,
                         init_cnt, trial, init_trial, starts_ns_median,
-                        maxrss_delta, oracle_F)
+                        maxrss_delta, oracle_F,
+                        starts_flops, init_flops, iterate_flops)
     start_entries = [start_entry_dict(r, j - 1, starts[j][2], oracle_F)
                      for (j, r) in enumerate(results)]
     totals = Dict{String,Any}(
@@ -274,6 +386,11 @@ function run_entry_dict(label, params, results::Vector{RQIResult}, starts,
         "totals" => totals,
         # search phase (shared across methods, timed once per matrix)
         "starts_runtime_ns_median" => starts_ns_median,
+        # LIKWID FLOPS_DP measurement of one pass per phase (null
+        # unless running on Linux with LIKWID.jl installed)
+        "starts_flops" => starts_flops,
+        "init_flops" => init_flops,
+        "iterate_flops" => iterate_flops,
         # init phase: state setup + first factorization
         "init_runtime_ns_median" => median(init_trial.times),
         "init_runtime_ns_min" => minimum(init_trial.times),
@@ -353,6 +470,11 @@ function main()
             "args" => args,
             "eltype" => string(T),
             "methods" => [method_label(m) for m in methods],
+            "machine" => machine_info(),
+            "flops" => Dict{String,Any}(
+                "instrumented" => HAVE_LIKWID,
+                "group" => HAVE_LIKWID ? FLOPS_GROUP : nothing,
+            ),
         ),
         "matrices" => Any[],
     )
@@ -382,6 +504,12 @@ function main()
                          power_iters = $(args["power-iters"]),
                          shift = $shift_arg)
         ); samples = args["samples"], evals = 1)
+        starts_flops = measure_flops() do
+            build_starts(strategy, A; seed = args["seed"],
+                         nstarts = args["nstarts"],
+                         power_iters = args["power-iters"],
+                         shift = shift_arg)
+        end
         match_tol = isnan(args["match-tol"]) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
             args["match-tol"]
@@ -394,8 +522,10 @@ function main()
         rss0 = Sys.maxrss()
         oracle_trial = run(@benchmarkable(run_oracle($Aoracle));
                            samples = args["samples"], evals = 1)
+        oracle_flops = measure_flops(() -> run_oracle(Aoracle))
         oracle_dict = Dict{String,Any}(
             "eltype" => string(Toracle),
+            "flops" => oracle_flops,
             "runtime_ns_median" => median(oracle_trial.times),
             "runtime_ns_min" => minimum(oracle_trial.times),
             "runtime_ns_samples" => oracle_trial.times,
@@ -422,6 +552,7 @@ function main()
                 "runtime_ns_samples" => starts_trial.times,
                 "bytes_allocated" => starts_trial.memory,
                 "alloc_count" => starts_trial.allocs,
+                "flops" => starts_flops,
             )),
             "oracle" => oracle_dict,
             "runs" => Any[],
@@ -493,11 +624,33 @@ function main()
                            gmres_restart = $(args["gmres-restart"])))
             ); samples = args["samples"], evals = 1)
 
+            # FLOP instrumentation (Linux + LIKWID.jl only): one dedicated
+            # pass per phase, measured independently of the timing trials.
+            init_flops = measure_flops() do
+                init_state(m, A, σ0_init, v0_init, normA;
+                           inner_reltol = args["inner-reltol"],
+                           inner_abstol = args["inner-abstol"],
+                           inner_maxiter = args["inner-maxiter"],
+                           gmres_restart = args["gmres-restart"])
+            end
+            iterate_flops = measure_flops() do
+                st_f = init_state(m, A, σ0_init, v0_init, normA;
+                                  inner_reltol = args["inner-reltol"],
+                                  inner_abstol = args["inner-abstol"],
+                                  inner_maxiter = args["inner-maxiter"],
+                                  gmres_restart = args["gmres-restart"])
+                for (v0_j, σ0_j) in starts
+                    reset_state!(st_f, A, σ0_j)
+                    run_rqi!(st_f, A, v0_j, σ0_j;
+                             tol = args["tol"], maxiter = args["maxiter"])
+                end
+            end
+
             starts_med = median(starts_trial.times)
             push!(entry["runs"],
                   run_entry_dict(label, params, mresults, starts, init_cnt,
                                  trial, init_trial, starts_med, maxrss_delta,
-                                 F))
+                                 F, starts_flops, init_flops, iterate_flops))
             append!(results, ((label, r) for r in mresults))
             total_times[label] =
                 starts_med + median(init_trial.times) + median(trial.times)
