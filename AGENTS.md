@@ -17,9 +17,16 @@ requires the pinned manifest: `julia --project=. -e 'using Pkg; Pkg.instantiate(
 
 ```sh
 julia --project=. bench/make_matrices.jl          # regenerate test matrices
+
+# find-all-eigenvalues experiment (shift sweep over Gershgorin range):
 julia --project=. bench/run_benchmark.jl \
     --matrices matrices/ --out results/bench.json \
-    --taus 0,0.01,0.1,1,inf --samples 5
+    --start-strategy grid --nstarts 10 --samples 5
+
+# largest-real-part experiment, in Float32:
+julia --project=. bench/run_benchmark.jl \
+    --matrices matrices/ --out results/bench_f32.json \
+    --start-strategy largest --eltype Float32 --tol 1e-5 --inner-reltol 1e-6
 ```
 
 Quick sanity check (all methods converge on a small symmetric matrix):

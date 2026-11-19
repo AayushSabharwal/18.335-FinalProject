@@ -13,6 +13,16 @@ using Printf
 include(joinpath(@__DIR__, "..", "src", "RQIBench.jl"))
 using .RQIBench
 
+const ELTYPE_MAP = Dict(
+    "Float16" => Float16,
+    "Float32" => Float32,
+    "Float64" => Float64,
+    "BigFloat" => BigFloat,
+    "ComplexF32" => ComplexF32,
+    "ComplexF64" => ComplexF64,
+    "Complex{BigFloat}" => Complex{BigFloat},
+)
+
 function parse_cli()
     s = ArgParseSettings(description = "Benchmark RQI variants on dense matrices.")
     @add_arg_table! s begin
@@ -24,6 +34,27 @@ function parse_cli()
             help = "Output JSON path"
             arg_type = String
             default = joinpath("results", "bench.json")
+        "--eltype"
+            help = "Element type for the computation: $(join(sort(collect(keys(ELTYPE_MAP))), ", "))"
+            arg_type = String
+            default = "Float64"
+        "--start-strategy"
+            help = "rq: single start at σ0=RQ(v0); grid: nstarts shifts spread over the Gershgorin range; largest: shifted power iterations build v0 near the rightmost eigenvector, σ0=RQ(v0)"
+            arg_type = String
+            default = "rq"
+            range_tester = x -> x in ("rq", "grid", "largest")
+        "--nstarts"
+            help = "Number of starts for --start-strategy=grid"
+            arg_type = Int
+            default = 10
+        "--power-iters"
+            help = "Shifted power iterations used to build v0 for --start-strategy=largest"
+            arg_type = Int
+            default = 10
+        "--shift"
+            help = "Explicit initial shift σ0 (forces a single start)"
+            arg_type = Float64
+            default = NaN
         "--tol"
             help = "Outer residual tolerance, relative to ||A||_Inf"
             arg_type = Float64
@@ -56,18 +87,18 @@ function parse_cli()
             help = "Comma-separated subset of: fixed_shift_lu,rqi_lu,rqi_gmres_input_prec,rqi_gmres_prev_prec (default: all)"
             arg_type = String
             default = "all"
-        "--shift"
-            help = "Initial shift σ0 (NaN → Rayleigh quotient of v0)"
-            arg_type = Float64
-            default = NaN
         "--seed"
-            help = "Seed for the initial vector v0"
+            help = "Base seed for the initial vectors v0 (start j uses seed+1000j)"
             arg_type = Int
             default = 1234
         "--samples"
-            help = "BenchmarkTools samples per (matrix, method)"
+            help = "BenchmarkTools samples per (matrix, method, start)"
             arg_type = Int
             default = 5
+        "--match-tol"
+            help = "Tolerance for matching a found eigenvalue to an oracle eigenvalue in the coverage summary (NaN → auto: max(10*tol, 10*sqrt(eps(T)))*||A||)"
+            arg_type = Float64
+            default = NaN
         "--skip-oracle-vectors"
             help = "Do not serialize the oracle eigenvector matrix"
             action = :store_true
@@ -111,6 +142,51 @@ function build_methods(methods_spec::String, taus_spec::String)
     return methods
 end
 
+"""
+    build_starts(strategy, A, args) -> Vector{Tuple{Vector{T}, T}}
+
+Initial (v0, σ0) pairs. `grid` spreads `--nstarts` shifts evenly across the
+Gershgorin real-axis range; `largest` builds `v0` from `--power-iters`
+shifted power iterations on `A - lo*I` (whose dominant eigenpair is the one
+with the largest real part of `A`) and starts at `σ0 = RQ(v0)`. An explicit
+`--shift` always forces a single start.
+"""
+function build_starts(strategy, A::AbstractMatrix{T}, args) where {T}
+    n = size(A, 1)
+    explicit = !isnan(args["shift"])
+    if explicit || strategy == "rq"
+        v0 = normalize(rand(MersenneTwister(args["seed"]), T, n))
+        σ0 = explicit ? T(args["shift"]) : dot(v0, A * v0)
+        return [(v0, T(σ0))]
+    end
+    lo, hi = gershgorin_bounds(A)
+    if strategy == "largest"
+        # Power iteration on A - lo·I: its eigenvalue of largest modulus is
+        # λmax(A) - lo, so v0 concentrates on the rightmost eigenvector.
+        v0 = normalize(rand(MersenneTwister(args["seed"]), T, n))
+        B = A - T(lo) * I
+        for _ in 1:args["power-iters"]
+            v0 = normalize(B * v0)
+        end
+        return [(v0, T(dot(v0, A * v0)))]
+    end
+    # grid
+    K = args["nstarts"]
+    K < 1 && error("--nstarts must be ≥ 1")
+    σs = K == 1 ? [(lo + hi) / 2] : collect(range(lo, hi, K))
+    return [(normalize(rand(MersenneTwister(args["seed"] + 1000j), T, n)), T(σ))
+            for (j, σ) in enumerate(σs)]
+end
+
+"""Element type for the oracle: at least Float64 precision."""
+oracle_eltype(::Type{T}) where {T} =
+    real(T) == BigFloat ? T : (T <: Complex ? ComplexF64 : Float64)
+
+function method_label(m::RQIMethod)
+    tag = method_tag(m)
+    return m isa GMRESPrevPrec ? "$tag (tau=$(m.tau))" : tag
+end
+
 # JSON.jl chokes on NaN/Inf; serialize them as null (full finite precision is
 # preserved — Float64 prints shortest-round-trip).
 _sanitize(x) = x
@@ -120,16 +196,14 @@ _sanitize(x::AbstractVector) = [_sanitize(v) for v in x]
 _sanitize(x::AbstractMatrix) = [_sanitize(collect(r)) for r in eachrow(x)]
 _sanitize(d::AbstractDict) = Dict(k => _sanitize(v) for (k, v) in pairs(d))
 
-complex_vector(v::AbstractVector{<:Complex}) =
-    [Dict("re" => real(z), "im" => imag(z)) for z in v]
-complex_vector(v::AbstractVector{<:Real}) = collect(v)
-
-function run_entry_dict(r::RQIResult, method::RQIMethod, trial,
+function run_entry_dict(r::RQIResult, label, start_index, trial,
                         maxrss_delta, oracle_F, params)
     i, λo, u = nearest_oracle(oracle_F, r.eigenvalue)
     c = r.counters
     d = Dict{String,Any}(
         "method" => r.method,
+        "label" => label,
+        "start_index" => start_index,
         "params" => params,
         "converged" => r.converged,
         "fail_reason" => r.fail_reason,
@@ -156,19 +230,54 @@ function run_entry_dict(r::RQIResult, method::RQIMethod, trial,
         "eigenvalue_abs_error" => _sanitize(abs(r.eigenvalue - λo)),
         "eigenvector_error" => _sanitize(eigenvector_error(r.eigenvector, u)),
     )
-    method isa GMRESPrevPrec && (d["params"]["tau"] = method.tau)
     return _sanitize(d)
+end
+
+"""
+Per-method coverage over the multi-start runs: which oracle eigenvalues were
+hit (within `match_tol`) by at least one converged run, plus whether the
+eigenvalue with the largest real part was found.
+"""
+function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol,
+                          total_times::Dict{String,Float64})
+    labels = unique(first.(results))
+    ilargest = argmax(real.(F.values))
+    out = Dict{String,Any}()
+    for lab in labels
+        idxs = Int[]
+        for (l, r) in results
+            (l == lab && r.converged) || continue
+            for (i, λ) in enumerate(F.values)
+                if abs(r.eigenvalue - λ) <= match_tol
+                    push!(idxs, i)
+                end
+            end
+        end
+        idxs = sort!(unique!(idxs))
+        out[lab] = Dict{String,Any}(
+            "n_eigenvalues" => length(F.values),
+            "n_found" => length(idxs),
+            "coverage" => length(idxs) / length(F.values),
+            "oracle_indices_found" => idxs,
+            "eigenvalues_found" => _sanitize(F.values[idxs]),
+            "found_largest" => ilargest in idxs,
+            "total_runtime_ns_median" => get(total_times, lab, NaN),
+        )
+    end
+    return out
 end
 
 function main()
     args = parse_cli()
+    T = get(ELTYPE_MAP, args["eltype"], nothing)
+    T === nothing && error("unknown --eltype '$(args["eltype"])'; choices: $(join(keys(ELTYPE_MAP), ", "))")
     methods = build_methods(args["methods"], args["taus"])
     files = matrix_files(args["matrices"])
     isempty(files) && error("no matrix files found under: $(args["matrices"])")
 
     if !args["skip-sanity"]
-        println(stderr, "sanity check ...")
-        sanity_check()
+        println(stderr, "sanity check (T=$T) ...")
+        sanity_check(T = T)
         println(stderr, "sanity check passed")
     end
 
@@ -180,8 +289,8 @@ function main()
             "blas_config" => string(BLAS.get_config()),
             "blas_threads" => BLAS.get_num_threads(),
             "args" => args,
-            "methods" => [method_tag(m) for m in methods],
-            "taus" => [m.tau for m in methods if m isa GMRESPrevPrec],
+            "eltype" => string(T),
+            "methods" => [method_label(m) for m in methods],
         ),
         "matrices" => Any[],
     )
@@ -189,15 +298,20 @@ function main()
 
     for file in files
         println(stderr, "== $file")
-        A = load_matrix(file)
+        A = load_matrix(file, T)
         n = size(A, 1)
         normA = opnorm(A, Inf)
-        v0 = normalize(rand(MersenneTwister(args["seed"]), n))
-        σ0 = isnan(args["shift"]) ? dot(v0, A * v0) : args["shift"]
+        starts = build_starts(args["start-strategy"], A, args)
+        match_tol = isnan(args["match-tol"]) ?
+            max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
+            args["match-tol"]
 
+        Toracle = oracle_eltype(T)
+        Aoracle = Matrix{Toracle}(A)
         rss0 = Sys.maxrss()
-        oracle_t = @timed F = run_oracle(A)
+        oracle_t = @timed F = run_oracle(Aoracle)
         oracle_dict = Dict{String,Any}(
+            "eltype" => string(Toracle),
             "runtime_ns" => oracle_t.time * 1e9,
             "bytes_allocated" => oracle_t.bytes,
             "gc_time_ns" => oracle_t.gctime * 1e9,
@@ -211,15 +325,20 @@ function main()
             "n" => n,
             "symmetric" => issymmetric(A),
             "norm_inf" => normA,
-            "v0_seed" => args["seed"],
-            "sigma0" => σ0,
+            "eltype" => string(T),
+            "match_tol" => match_tol,
+            "n_starts" => length(starts),
             "oracle" => oracle_dict,
             "runs" => Any[],
+            "coverage" => Dict{String,Any}(),
         )
 
-        for m in methods
-            tag = method_tag(m) * (m isa GMRESPrevPrec ? " (tau=$(m.tau))" : "")
-            print(stderr, "   $tag ... ")
+        results = Tuple{String,RQIResult}[]
+        total_times = Dict{String,Float64}()
+
+        for (si, (v0, σ0)) in enumerate(starts), m in methods
+            label = method_label(m)
+            print(stderr, "   start $si/$(length(starts)) $label ... ")
             inner_max = args["inner-maxiter"] <= 0 ? n : args["inner-maxiter"]
             params = Dict{String,Any}(
                 "tol" => args["tol"], "maxiter" => args["maxiter"],
@@ -227,8 +346,11 @@ function main()
                 "inner_abstol" => args["inner-abstol"],
                 "inner_maxiter" => inner_max,
                 "gmres_restart" => args["gmres-restart"],
+                "power_iters" => args["start-strategy"] == "largest" ?
+                                 args["power-iters"] : 0,
                 "seed" => args["seed"], "sigma0" => σ0,
             )
+            m isa GMRESPrevPrec && (params["tau"] = m.tau)
             # Deterministic run: captures the eigenpair + counters.
             result = run_rqi(m, A; v0 = v0, σ0 = σ0, tol = args["tol"],
                              maxiter = args["maxiter"],
@@ -246,13 +368,19 @@ function main()
                         gmres_restart = $(args["gmres-restart"]))
             ); samples = args["samples"], evals = 1)
             push!(entry["runs"],
-                  run_entry_dict(result, m, trial, Sys.maxrss() - rss0, F, params))
+                  run_entry_dict(result, label, si - 1, trial,
+                                 Sys.maxrss() - rss0, F, params))
+            push!(results, (label, result))
+            total_times[label] =
+                get(total_times, label, 0.0) + median(trial.times)
             println(stderr, "$(result.converged ? "converged" : "FAILED") " *
                           "iters=$(result.counters.outer_iters) " *
                           "facs=$(result.counters.n_factorizations) " *
                           "λ=$(result.eigenvalue)")
         end
 
+        entry["coverage"] = _sanitize(coverage_summary(results, F, match_tol,
+                                                     total_times))
         push!(out["matrices"], entry)
         open(args["out"], "w") do io
             JSON.print(io, _sanitize(out), 4)

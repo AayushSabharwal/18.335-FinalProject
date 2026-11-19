@@ -4,7 +4,11 @@
 Benchmark infrastructure for variants of (inexact) Rayleigh quotient
 iteration. All variants share one outer iteration; they differ only in how
 the inner shifted solve `(A - σI) w = v` is performed. Inner solves go
-through LinearSolve.jl (dense LU via LAPACK, GMRES via Krylov.jl).
+through LinearSolve.jl (dense LU, GMRES via Krylov.jl).
+
+Each [`run_rqi`](@ref) call computes ONE eigenpair and stops at the first
+eigenvalue it converges to. Generic over the element type `T` of `A`
+(Float32/64, BigFloat, ComplexF32/64, ...).
 """
 module RQIBench
 
@@ -17,7 +21,8 @@ using Random
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
        RQICounters, RQIResult, run_rqi, run_oracle, load_matrix,
-       method_tag, nearest_oracle, eigenvector_error, sanity_check
+       method_tag, nearest_oracle, eigenvector_error, gershgorin_bounds,
+       sanity_check
 
 # ---------------------------------------------------------------------------
 # Methods
@@ -55,7 +60,7 @@ method_tag(::GMRESPrevPrec) = "rqi_gmres_prev_prec"
 # Counters and results
 # ---------------------------------------------------------------------------
 
-mutable struct RQICounters
+mutable struct RQICounters{T,R<:Real}
     outer_iters::Int
     n_shifts::Int                    # times the solve matrix (A - σI) changed
     n_factorizations::Int
@@ -63,48 +68,53 @@ mutable struct RQICounters
     gmres_iters_total::Int
     gmres_stalled::Int               # GMRES solves that hit inner_maxiter
     gmres_iters_per_step::Vector{Int}
-    shift_history::Vector{Float64}
-    residual_history::Vector{Float64}
+    shift_history::Vector{T}
+    residual_history::Vector{R}
 end
 
-RQICounters() = RQICounters(0, 0, 0, 0, 0, 0, Int[], Float64[], Float64[])
+RQICounters{T}() where {T} =
+    RQICounters{T,real(T)}(0, 0, 0, 0, 0, 0, Int[], T[], real(T)[])
 
-struct RQIResult{T}
+struct RQIResult{T,R<:Real}
     method::String
     eigenvalue::T
     eigenvector::Vector{T}
-    final_residual::T
+    final_residual::R
     converged::Bool
     fail_reason::Union{String,Nothing}
-    counters::RQICounters
+    counters::RQICounters{T,R}
 end
 
 # ---------------------------------------------------------------------------
 # Internal solver state
 # ---------------------------------------------------------------------------
 
-const DenseLU = LU{Float64,Matrix{Float64},Vector{Int64}}
+const DenseLU{T} = LU{T,Matrix{T},Vector{Int64}}
 
-mutable struct SolverState{M,C}
+mutable struct SolverState{M,C,T,R<:Real}
     method::M
-    cache::C                    # LinearSolve LinearCache
-    S::Matrix{Float64}          # workspace for the shifted matrix A - σI
-    prec::Ref{Union{Nothing,DenseLU}}  # current preconditioner factorization (GMRES)
-    σ_solve::Float64            # shift used by the most recent solve
-    σ_fac::Float64              # shift of the most recent factorization
-    normA::Float64
+    cache::C                            # LinearSolve LinearCache
+    S::Matrix{T}                        # workspace for the shifted matrix A - σI
+    prec::Ref{Union{Nothing,DenseLU{T}}}  # current preconditioner (GMRES methods)
+    σ_solve::T                          # shift used by the most recent solve
+    σ_fac::T                            # shift of the most recent factorization
+    normA::R
     inner_maxiter::Int
-    counters::RQICounters
-    stall_next::Bool            # previous GMRES hit maxiters → refactorize prec
+    counters::RQICounters{T,R}
+    stall_next::Bool                    # previous GMRES hit maxiters → refactorize
 end
 
-shift_into!(S, A, σ) = (copyto!(S, A); S[diagind(S)] .-= σ; S)
+shift_into!(S::AbstractMatrix{T}, A, σ::T) where {T} =
+    (copyto!(S, A); S[diagind(S)] .-= σ; S)
 
-_singular_perturb(σ, normA, k = 1) =
-    σ + sign(σ == 0 ? 1 : σ) * eps(normA) * max(abs(σ), normA) * 8.0^(k - 1)
+function _singular_perturb(σ::T, normA::Real, k = 1) where {T<:Number}
+    s = sign(σ)
+    s == 0 && (s = one(T))
+    return T(σ + s * eps(normA) * max(abs(σ), normA) * 8^(k - 1))
+end
 
 """Factorize `S` with dense LU, nudging the shift if the matrix is singular."""
-function _factorize_shifted!(cnt, S, A, σ, normA)
+function _factorize_shifted!(cnt, S::Matrix{T}, A, σ::T, normA) where {T}
     F = lu(S; check = false)
     attempts = 0
     while !issuccess(F) && attempts < 3
@@ -122,9 +132,10 @@ function _new_cache(Ashift, b, ::Union{FixedShiftLU,RefactorLU}; kwargs...)
     init(prob, LUFactorization(); verbose = false)
 end
 
-function _new_cache(Ashift, b, ::Union{GMRESInputPrec,GMRESPrevPrec}, prec;
-                    inner_reltol, inner_abstol, inner_maxiter, gmres_restart)
-    prec_ref = Ref{Union{Nothing,DenseLU}}(prec)
+function _new_cache(Ashift::Matrix{T}, b, ::Union{GMRESInputPrec,GMRESPrevPrec},
+                    prec::DenseLU{T}; inner_reltol, inner_abstol,
+                    inner_maxiter, gmres_restart) where {T}
+    prec_ref = Ref{Union{Nothing,DenseLU{T}}}(prec)
     alg = KrylovJL_GMRES(gmres_restart = gmres_restart;
                          precs = (A_, p_) -> (prec_ref[], LinearAlgebra.I))
     prob = LinearProblem(Ashift, b)
@@ -133,28 +144,28 @@ function _new_cache(Ashift, b, ::Union{GMRESInputPrec,GMRESPrevPrec}, prec;
     return cache, prec_ref
 end
 
-function init_state(method::Union{FixedShiftLU,RefactorLU}, A, σ0, v, normA;
-                    kwargs...)
-    cnt = RQICounters()
-    n = size(A, 1)
-    S = similar(A, Float64)
+function init_state(method::Union{FixedShiftLU,RefactorLU}, A::Matrix{T}, σ0::T,
+                    v::Vector{T}, normA; kwargs...) where {T}
+    cnt = RQICounters{T}()
+    S = similar(A)
     shift_into!(S, A, σ0)
     cache = _new_cache(copy(S), copy(v), method)
     cnt.n_factorizations = 1
-    return SolverState(method, cache, S, Ref{Union{Nothing,DenseLU}}(nothing), σ0, σ0, normA,
-                       get(kwargs, :inner_maxiter, 0), cnt, false)
+    return SolverState(method, cache, S, Ref{Union{Nothing,DenseLU{T}}}(nothing),
+                       σ0, σ0, normA, get(kwargs, :inner_maxiter, 0), cnt, false)
 end
 
-function init_state(method::Union{GMRESInputPrec,GMRESPrevPrec}, A, σ0, v, normA;
-                    inner_reltol, inner_abstol, inner_maxiter, gmres_restart)
-    cnt = RQICounters()
+function init_state(method::Union{GMRESInputPrec,GMRESPrevPrec}, A::Matrix{T},
+                    σ0::T, v::Vector{T}, normA;
+                    inner_reltol, inner_abstol, inner_maxiter, gmres_restart) where {T}
+    cnt = RQICounters{T}()
     n = size(A, 1)
-    S = similar(A, Float64)
+    S = similar(A)
     F, σf = _factorize_shifted!(cnt, shift_into!(S, A, σ0), A, σ0, normA)
     cache, prec_ref = _new_cache(copy(S), copy(v), method, F;
-                                 inner_reltol, inner_abstol,
-                                 inner_maxiter = inner_maxiter <= 0 ? n : inner_maxiter,
-                                 gmres_restart)
+                               inner_reltol, inner_abstol,
+                               inner_maxiter = inner_maxiter <= 0 ? n : inner_maxiter,
+                               gmres_restart)
     cnt.n_factorizations = 1
     return SolverState(method, cache, S, prec_ref, σ0, σf, normA,
                        inner_maxiter <= 0 ? n : inner_maxiter, cnt, false)
@@ -247,30 +258,32 @@ end
     run_rqi(method, A; v0, σ0, tol, maxiter, inner_reltol, inner_abstol,
             inner_maxiter, gmres_restart) -> RQIResult
 
-Run one eigenpair iteration. `tol` is relative to `||A||_∞`: the loop stops
-when `||Av - σv|| ≤ tol·||A||_∞`. For [`FixedShiftLU`](@ref) the solve shift
-is frozen at `σ0` while `σ` still tracks the Rayleigh quotient for reporting.
+Run one eigenpair iteration: solves for a single eigenpair and stops when
+`||Av - σv|| ≤ tol·||A||_∞` (or `maxiter` is hit). For [`FixedShiftLU`](@ref)
+the solve shift is frozen at `σ0` while `σ` still tracks the Rayleigh
+quotient for reporting. Generic over the element type `T` of `A`.
 """
-function run_rqi(method::RQIMethod, A::AbstractMatrix{<:Real};
-                 v0::AbstractVector, σ0::Real,
+function run_rqi(method::RQIMethod, A::AbstractMatrix{T};
+                 v0::AbstractVector, σ0::Number,
                  tol::Real = 1e-10, maxiter::Integer = 50,
-                 inner_reltol::Real = 1e-10, inner_abstol::Real = 0.0,
-                 inner_maxiter::Integer = 0, gmres_restart::Integer = 0)
-    A = Matrix{Float64}(A)
+                 inner_reltol::Real = 1e-10, inner_abstol::Real = 0,
+                 inner_maxiter::Integer = 0, gmres_restart::Integer = 0) where {T<:Number}
+    A = Matrix{T}(A)
     n = size(A, 1)
     normA = opnorm(A, Inf)
-    v = collect(Float64, v0)
-    v ./= norm(v)
-    σ = Float64(σ0)
+    v = normalize(Vector{T}(v0))
+    σ = T(σ0)
+    rt = real(T)
     st = init_state(method, A, σ, v, normA;
-                    inner_reltol, inner_abstol = Float64(inner_abstol),
+                    inner_reltol = rt(inner_reltol),
+                    inner_abstol = rt(inner_abstol),
                     inner_maxiter = Int(inner_maxiter),
                     gmres_restart = Int(gmres_restart))
     cnt = st.counters
 
     converged = false
     fail_reason = nothing
-    res = Inf
+    res = normA
     Av = similar(v)
     for it in 1:maxiter
         cnt.outer_iters = it
@@ -306,15 +319,16 @@ end
 # ---------------------------------------------------------------------------
 
 """Full eigendecomposition baseline. Returns the `Eigen` factorization."""
-run_oracle(A::AbstractMatrix{<:Real}) = eigen(Matrix{Float64}(A))
+run_oracle(A::AbstractMatrix) = eigen(Matrix(A))
 
 """
-    load_matrix(path) -> Matrix{Float64}
+    load_matrix(path, T = Float64) -> Matrix{T}
 
-Read a dense matrix from a delimited text file. The delimiter is sniffed from
-the first non-blank line: comma if one appears, else whitespace.
+Read a dense matrix from a delimited text file and convert to eltype `T`.
+The delimiter is sniffed from the first non-blank line: comma if one
+appears, else whitespace.
 """
-function load_matrix(path::AbstractString)
+function load_matrix(path::AbstractString, ::Type{T} = Float64) where {T<:Number}
     firstline = ""
     open(path) do io
         for line in eachline(io)
@@ -331,7 +345,7 @@ function load_matrix(path::AbstractString)
                         readdlm(path, dlm, Float64, comments = true)
     M isa Matrix || (M = reshape(M, :, 1))
     size(M, 1) == size(M, 2) || error("matrix in $path is not square: $(size(M))")
-    return Matrix{Float64}(M)
+    return Matrix{T}(M)
 end
 
 """Nearest oracle eigenpair to `λ`; returns (index, λ_oracle, eigenvector)."""
@@ -340,10 +354,30 @@ function nearest_oracle(F::Eigen, λ)
     return i, F.values[i], F.vectors[:, i]
 end
 
-"""Eigenvector distance, sign-insensitive, relative to unit vectors."""
-function eigenvector_error(v, u)
-    d = min(norm(v .- u), norm(v .+ u))
-    return d / norm(v)
+"""
+Eigenvector distance as `sin θ` between the two one-dimensional subspaces,
+`sqrt(1 - |⟨u,v⟩|²/(‖u‖‖v‖))`. Sign/phase-insensitive, so it works for both
+real and complex eigenvectors.
+"""
+eigenvector_error(v, u) =
+    sqrt(max(0, 1 - abs2(dot(u, v) / (norm(u) * norm(v)))))
+
+"""
+    gershgorin_bounds(A) -> (lo, hi)
+
+Real-axis bounds on the spectrum from the Gershgorin discs
+`[Re(a_ii) - r_i, Re(a_ii) + r_i]`. For symmetric `A` these bound
+`[λmin, λmax]`; otherwise they bound the real parts.
+"""
+function gershgorin_bounds(A::AbstractMatrix)
+    d = diag(A)
+    lo, hi = Inf, -Inf
+    for i in axes(A, 1)
+        r = sum(abs, A[i, :]) - abs(d[i])
+        lo = min(lo, real(d[i]) - r)
+        hi = max(hi, real(d[i]) + r)
+    end
+    return lo, hi
 end
 
 # ---------------------------------------------------------------------------
@@ -351,26 +385,28 @@ end
 # ---------------------------------------------------------------------------
 
 """
-    sanity_check() -> Bool
+    sanity_check(; T = Float64) -> Bool
 
-Run every method on a small symmetric matrix with the initial shift placed
-near a true eigenvalue, and assert they all converge to it.
+Run every method on a small symmetric matrix of eltype `T` with the initial
+shift placed near a true eigenvalue, and assert they all converge to it.
 """
-function sanity_check(; seed = 0, n = 30, tol = 1e-10)
+function sanity_check(; seed = 0, n = 30, T::Type = Float64)
+    rt = real(T)
+    tol = max(1e-10, 10 * eps(rt))
     rng = MersenneTwister(seed)
     A = randn(rng, n, n)
-    A = (A + A') / 2
+    A = T.((A + A') / 2)
     F = run_oracle(A)
-    v0 = normalize(rand(rng, n))
+    v0 = normalize(rand(rng, T, n))
     λtarget = F.values[argmin(abs.(F.values .- dot(v0, A * v0)))]
-    σ0 = λtarget + 1e-3
+    σ0 = T(real(λtarget) + rt(1e-3))
     for m in (FixedShiftLU(), RefactorLU(), GMRESInputPrec(), GMRESPrevPrec(0.05))
         r = run_rqi(m, A; v0 = v0, σ0 = σ0, tol = tol)
         i, λo, u = nearest_oracle(F, r.eigenvalue)
         converged_ok = r.converged && abs(r.eigenvalue - λo) < sqrt(tol) &&
                        eigenvector_error(r.eigenvector, u) < sqrt(tol)
         converged_ok ||
-            error("sanity check failed for $(r.method): converged=$(r.converged) " *
+            error("sanity check failed for $(r.method) (T=$T): converged=$(r.converged) " *
                   "λ=$(r.eigenvalue) vs oracle $(λo) (res=$(r.final_residual))")
     end
     return true

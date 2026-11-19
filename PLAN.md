@@ -151,6 +151,31 @@ Full precision: JSON.jl emits shortest-round-trip floats (bit-exact).
 Eigenvectors serialized as plain arrays; complex pairs stored as
 `{"re":..., "im":...}` components if a nonsymmetric input produces them.
 
+## Update: multi-start + generic eltype
+
+Each `run_rqi` still computes one eigenpair. To target the analysis goal
+(find all eigenvalues / the one with largest real part), the driver runs
+multiple starts per (matrix, method):
+
+- `--start-strategy rq`: single start, σ0 = RQ(v0) (original behavior).
+- `--start-strategy grid`: `--nstarts` σ0's spread evenly over the
+  Gershgorin real-axis range (no oracle information used).
+- `--start-strategy largest`: v0 built from `--power-iters` shifted power
+  iterations on `A - lo·I` (concentrates on the rightmost eigenvector —
+  a raw far-shift start was shown to land mid-spectrum), σ0 = RQ(v0).
+
+Every run records `start_index` and `sigma0`. A per-matrix `coverage`
+section reports, per method label, how many oracle eigenvalues were hit by
+at least one converged run (within `match_tol`), `found_largest`, and the
+summed median runtimes ("cost to find the eigenvalues").
+
+Everything is generic over `T = --eltype` (Float16/32/64, BigFloat,
+ComplexF32/64): `RQICounters{T,R}`, `RQIResult{T,R}`,
+`SolverState{M,C,T,R}`. The oracle always runs in ≥ Float64 (`BigFloat`
+stays `BigFloat`) so low-precision runs are measured against an accurate
+reference. `eigenvector_error` is the phase-invariant `sin θ` subspace
+distance.
+
 ## Environment
 
 `Project.toml` at the repo root: `LinearSolve`, `Krylov`, `JSON`,
