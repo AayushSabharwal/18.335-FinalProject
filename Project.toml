@@ -1,6 +1,7 @@
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+EnumX = "4e289a0a-7415-4d19-859d-a7e5c4648b56"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
@@ -8,6 +9,7 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 [compat]
 ArgParse = "1"
 BenchmarkTools = "1"
+EnumX = "1"
 JSON = "1"
 LinearSolve = "5"
 SciMLBase = "3"

@@ -12,6 +12,7 @@ eigenvalue it converges to. Generic over the element type `T` of `A`
 """
 module RQIBench
 
+using EnumX
 using LinearAlgebra
 using LinearSolve
 import SciMLBase
@@ -20,8 +21,8 @@ using Printf
 using Random
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
-       RQICounters, RQIResult, run_rqi, run_rqi!, init_state, reset_state!,
-       run_oracle, load_matrix, method_tag, nearest_oracle,
+       RQICounters, RQIResult, RQIFail, run_rqi, run_rqi!, init_state,
+       reset_state!, run_oracle, load_matrix, method_tag, nearest_oracle,
        eigenvector_error, gershgorin_bounds, sanity_check
 
 # ---------------------------------------------------------------------------
@@ -75,13 +76,21 @@ end
 RQICounters{T}() where {T} =
     RQICounters{T,real(T)}(0, 0, 0, 0, 0, 0, Int[], T[], real(T)[])
 
+"""Why a [`run_rqi!`](@ref) call stopped without (or with) convergence."""
+@enumx RQIFail begin
+    None              # converged, or nothing abnormal to report
+    SolveFailed       # linear solve failed / nonfinite solution
+    Diverged          # nonfinite or zero iterate
+    MaxIterations     # iteration cap hit without converging
+end
+
 struct RQIResult{T,R<:Real}
     method::String
     eigenvalue::T
     eigenvector::Vector{T}
     final_residual::R
     converged::Bool
-    fail_reason::Union{String,Nothing}
+    fail_reason::RQIFail.T
     counters::RQICounters{T,R}
 end
 
@@ -331,7 +340,7 @@ function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T}, v0::Vector{T},
     sizehint!(cnt.gmres_iters_per_step, maxiter)
 
     converged = false
-    fail_reason = nothing
+    fail_reason = RQIFail.None
     res = normA
     for it in 1:maxiter
         cnt.outer_iters = it
@@ -339,12 +348,12 @@ function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T}, v0::Vector{T},
         cnt.gmres_iters_total += inner_iters
         inner_iters > 0 && push!(cnt.gmres_iters_per_step, inner_iters)
         if !ok || w === nothing
-            fail_reason = "linear solve failed"
+            fail_reason = RQIFail.SolveFailed
             break
         end
         nw = norm(w, Inf)
         if !(isfinite(nw) && nw > 0)
-            fail_reason = "diverged (nonfinite or zero iterate)"
+            fail_reason = RQIFail.Diverged
             break
         end
         copyto!(v, w)
@@ -360,6 +369,8 @@ function run_rqi!(st::SolverState{<:Any,<:Any,T}, A::Matrix{T}, v0::Vector{T},
             break
         end
     end
+    !converged && fail_reason == RQIFail.None &&
+        (fail_reason = RQIFail.MaxIterations)
 
     return RQIResult(method_tag(st.method), σ, copy(v), res, converged,
                      fail_reason, cnt)

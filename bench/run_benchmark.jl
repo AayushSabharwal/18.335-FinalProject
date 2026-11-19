@@ -222,7 +222,7 @@ function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
         "start_index" => start_index,
         "sigma0" => σ0,
         "converged" => r.converged,
-        "fail_reason" => r.fail_reason,
+        "fail_reason" => string(r.fail_reason),
         "outer_iterations" => c.outer_iters,
         "n_shifts" => c.n_shifts,
         "n_factorizations" => c.n_factorizations,
