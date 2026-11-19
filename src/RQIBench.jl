@@ -537,7 +537,7 @@ function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
     end
     # Shift placement and power iteration act on the standard-form problem
     # Â = B\A (one dense solve in the timed search phase when B ≠ I).
-    Â = hasB ? Matrix{T}(B \ A) : A
+    Â = hasB ? B \ A : A
     lo, hi = gershgorin_bounds(Â)
     if strategy == "largest"
         # Power iteration on Â - lo·I: its eigenvalue of largest modulus is
