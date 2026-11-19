@@ -83,11 +83,13 @@ end
 # Internal solver state
 # ---------------------------------------------------------------------------
 
+const DenseLU = LU{Float64,Matrix{Float64},Vector{Int64}}
+
 mutable struct SolverState{M,C}
     method::M
     cache::C                    # LinearSolve LinearCache
     S::Matrix{Float64}          # workspace for the shifted matrix A - σI
-    prec::Ref{Any}              # current preconditioner factorization (GMRES)
+    prec::Ref{Union{Nothing,DenseLU}}  # current preconditioner factorization (GMRES)
     σ_solve::Float64            # shift used by the most recent solve
     σ_fac::Float64              # shift of the most recent factorization
     normA::Float64
@@ -122,7 +124,7 @@ end
 
 function _new_cache(Ashift, b, ::Union{GMRESInputPrec,GMRESPrevPrec}, prec;
                     inner_reltol, inner_abstol, inner_maxiter, gmres_restart)
-    prec_ref = Ref{Any}(prec)
+    prec_ref = Ref{Union{Nothing,DenseLU}}(prec)
     alg = KrylovJL_GMRES(gmres_restart = gmres_restart;
                          precs = (A_, p_) -> (prec_ref[], LinearAlgebra.I))
     prob = LinearProblem(Ashift, b)
@@ -139,7 +141,7 @@ function init_state(method::Union{FixedShiftLU,RefactorLU}, A, σ0, v, normA;
     shift_into!(S, A, σ0)
     cache = _new_cache(copy(S), copy(v), method)
     cnt.n_factorizations = 1
-    return SolverState(method, cache, S, Ref{Any}(nothing), σ0, σ0, normA,
+    return SolverState(method, cache, S, Ref{Union{Nothing,DenseLU}}(nothing), σ0, σ0, normA,
                        get(kwargs, :inner_maxiter, 0), cnt, false)
 end
 
