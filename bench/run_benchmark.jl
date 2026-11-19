@@ -143,20 +143,23 @@ function build_methods(methods_spec::String, taus_spec::String)
 end
 
 """
-    build_starts(strategy, A, args) -> Vector{Tuple{Vector{T}, T}}
+    build_starts(strategy, A; seed, nstarts, power_iters, shift) -> Vector{Tuple{Vector{T}, T}}
 
-Initial (v0, σ0) pairs. `grid` spreads `--nstarts` shifts evenly across the
-Gershgorin real-axis range; `largest` builds `v0` from `--power-iters`
+Initial (v0, σ0) pairs. `grid` spreads `nstarts` shifts evenly across the
+Gershgorin real-axis range; `largest` builds `v0` from `power_iters`
 shifted power iterations on `A - lo*I` (whose dominant eigenpair is the one
 with the largest real part of `A`) and starts at `σ0 = RQ(v0)`. An explicit
-`--shift` always forces a single start.
+`shift` always forces a single start. Takes only concrete values — the CLI
+Dict is unpacked once at the call site so the (timed) search phase is
+type-stable.
 """
-function build_starts(strategy, A::AbstractMatrix{T}, args) where {T}
+function build_starts(strategy::String, A::AbstractMatrix{T};
+                      seed::Integer, nstarts::Integer, power_iters::Integer,
+                      shift::Union{Nothing,T} = nothing) where {T}
     n = size(A, 1)
-    explicit = !isnan(args["shift"])
-    if explicit || strategy == "rq"
-        v0 = normalize(rand(MersenneTwister(args["seed"]), T, n))
-        σ0 = explicit ? T(args["shift"]) : dot(v0, A * v0)
+    if shift !== nothing || strategy == "rq"
+        v0 = normalize(rand(MersenneTwister(seed), T, n))
+        σ0 = shift === nothing ? dot(v0, A * v0) : T(shift)
         return [(v0, T(σ0))]
     end
     lo, hi = gershgorin_bounds(A)
@@ -169,11 +172,11 @@ function build_starts(strategy, A::AbstractMatrix{T}, args) where {T}
         # matrix whose rightmost eigenvalues are a complex pair, v0 can only
         # reach the invariant 2-plane and the RQ oscillates; a complex
         # --eltype is needed for RQI to converge to a complex λ.
-        v0 = normalize(rand(MersenneTwister(args["seed"]), T, n))
+        v0 = normalize(rand(MersenneTwister(seed), T, n))
         B = A - T(lo) * I
         scale = max(real(hi - lo), eps(real(T)))
         rq = dot(v0, A * v0)
-        for _ in 1:args["power-iters"]
+        for _ in 1:power_iters
             w = B * v0
             nw = norm(w)
             nw < eps(real(T)) && break   # λmax == lo, degenerate
@@ -184,11 +187,11 @@ function build_starts(strategy, A::AbstractMatrix{T}, args) where {T}
         end
         return [(v0, T(rq))]
     end
-    # grid
-    K = args["nstarts"]
-    K < 1 && error("--nstarts must be ≥ 1")
+    strategy != "grid" && error("unknown start strategy: $strategy")
+    K = nstarts
+    K < 1 && error("nstarts must be ≥ 1")
     σs = K == 1 ? [(lo + hi) / 2] : collect(range(lo, hi, K))
-    return [(normalize(rand(MersenneTwister(args["seed"] + 1000j), T, n)), T(σ))
+    return [(normalize(rand(MersenneTwister(seed + 1000j), T, n)), T(σ))
             for (j, σ) in enumerate(σs)]
 end
 
@@ -363,9 +366,21 @@ function main()
         # Search phase: compute the starts once per matrix (shared by all
         # methods) and time it — for `largest` this is the shifted power
         # iteration, a real cost the oracle comparison should include.
-        starts = build_starts(args["start-strategy"], A, args)
+        # CLI args are unpacked into concrete values here so build_starts
+        # is type-stable in the timed path.
+        strategy = args["start-strategy"]
+        shift_arg = isnan(args["shift"]) ? nothing : T(args["shift"])
+        starts = build_starts(strategy, A;
+                              seed = args["seed"],
+                              nstarts = args["nstarts"],
+                              power_iters = args["power-iters"],
+                              shift = shift_arg)
         starts_trial = run(@benchmarkable(
-            build_starts($(args["start-strategy"]), $A, $args)
+            build_starts($strategy, $A;
+                         seed = $(args["seed"]),
+                         nstarts = $(args["nstarts"]),
+                         power_iters = $(args["power-iters"]),
+                         shift = $shift_arg)
         ); samples = args["samples"], evals = 1)
         match_tol = isnan(args["match-tol"]) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
