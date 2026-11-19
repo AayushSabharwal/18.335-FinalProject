@@ -16,20 +16,15 @@ using .RQIBench
 # ---------------------------------------------------------------------------
 # Optional FLOP instrumentation via LIKWID.jl (Linux only)
 # ---------------------------------------------------------------------------
-# LIKWID.jl is intentionally NOT a project dependency: it only works on
-# Linux (perf_event / access-daemon permissions), so it is loaded
-# opportunistically. To enable: `Pkg.add("LIKWID")` on a Linux machine,
-# then run this driver as usual — each phase's `flops` entry in the JSON
-# contains a FLOPS_DP perfmon measurement of one dedicated pass.
+# LIKWID.jl is a pinned project dependency, but it is only *usable* on
+# Linux (perf_event / access-daemon permissions) — on other platforms it
+# must not be loaded or even parsed for its macros. `find_package` runs
+# at parse time inside @static, so this `using` is only spliced in where
+# LIKWID is actually installed. On a Linux machine the driver
+# instruments each phase automatically; elsewhere every `flops` entry
+# serializes as null.
 
 const FLOPS_GROUP = "FLOPS_DP"
-
-# LIKWID.jl is intentionally NOT a project dependency: it only works on
-# Linux (perf_event / access-daemon permissions), and must not be loaded —
-# or even parsed for its macros — on other platforms or when absent.
-# `find_package` runs at parse time inside @static, so this `using` is
-# only spliced in where LIKWID is actually installed. To enable:
-# `Pkg.add("LIKWID")` on a Linux machine, then run this driver as usual.
 @static if Sys.islinux() && !isnothing(Base.find_package("LIKWID"))
     using LIKWID
 end
