@@ -459,12 +459,11 @@ Real-axis bounds on the spectrum from the Gershgorin discs
 `[λmin, λmax]`; otherwise they bound the real parts.
 """
 function gershgorin_bounds(A::AbstractMatrix)
-    d = diag(A)
     lo, hi = Inf, -Inf
     for (i, row) in enumerate(eachrow(A))
-        r = sum(abs, row) - abs(d[i])
-        lo = min(lo, real(d[i]) - r)
-        hi = max(hi, real(d[i]) + r)
+        r = sum(abs, row) - abs(A[i, i])
+        lo = min(lo, real(A[i, i]) - r)
+        hi = max(hi, real(A[i, i]) + r)
     end
     return lo, hi
 end
@@ -524,7 +523,7 @@ function build_starts(strategy::String, A::AbstractMatrix{T};
     K = nstarts
     K < 1 && error("nstarts must be ≥ 1")
     σs = K == 1 ? [(lo + hi) / 2] : collect(range(lo, hi, K))
-    return [(normalize(rand(MersenneTwister(seed + 1000j), T, n)), T(σ))
+    return [(normalize!(rand(Xoshiro(seed + 1000j), T, n)), T(σ))
             for (j, σ) in enumerate(σs)]
 end
 
