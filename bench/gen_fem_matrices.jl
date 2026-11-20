@@ -1,6 +1,6 @@
 # Generate benchmark matrices: run the FreeFEM stability scripts inside the
-# freefem/freefem docker image and convert the COO dumps into stacked-pencil
-# [J; M] Matrix Market files that run_benchmark.jl consumes.
+# freefem/freefem docker image and convert the assembled matrices into
+# stacked-pencil [J; M] Matrix Market files that run_benchmark.jl consumes.
 #
 #   julia --project=. bench/gen_fem_matrices.jl                  # all jobs
 #   julia --project=. bench/gen_fem_matrices.jl cavity cylinder  # subset
@@ -10,8 +10,8 @@
 # For each (geometry, Re) the script writes a wrapper .edp
 # (TestEnv/fem/run_<job>.edp) that defines the parameter block and includes
 # bench/<geometry>.edp — FreeFEM 4.12 has no getARGV(), so parameters are
-# injected textually. FreeFEM writes its COO dumps to
-# TestEnv/fem/<key>_<tag>_Re<Re>/ and the .mtx lands in matrices/.
+# injected textually. FreeFEM writes J.mtx/M.mtx (via savemtx) plus bnd.txt
+# to TestEnv/fem/<key>_<tag>_Re<Re>/ and the pencil lands in matrices/.
 #
 # Stability notes:
 #   cavity   Re_c ~ 8000    leading complex pair approaches the axis
@@ -86,8 +86,8 @@ function run_job(job, Re; skip_ff = false)
         println(stderr, "== $key: FreeFem++ ($(job.edp)) -> $indir")
         run_freefem(runfile, logfile)
     end
-    isfile(joinpath(REPO, indir, "J.txt")) ||
-        error("no J.txt in $indir — see log $logfile")
+    isfile(joinpath(REPO, indir, "J.mtx")) ||
+        error("no J.mtx in $indir — see log $logfile")
     write_pencil_mtx(joinpath(REPO, indir), joinpath(REPO, mtxpath))
     return nothing
 end

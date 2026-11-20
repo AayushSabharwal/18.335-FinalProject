@@ -21,6 +21,7 @@
 //   include "/work/bench/stability_channel.edp";
 
 verbosity = 1;
+load "MatrixMarket"
 exec("mkdir -p " + outdir);
 
 mesh Th = square(NX, N, [L*x, 2*y - 1]);
@@ -70,10 +71,8 @@ int k = EigenValue(Jt, M, sym=false, sigma=sigRef, value=ev, ivalue=evi,
                    tol=1e-10, maxit=0, ncv=0);
 k = min(k, nev);
 
-{
-    ofstream f(outdir + "/J.txt"); f.precision(17); f << J;
-    ofstream f2(outdir + "/M.txt"); f2.precision(17); f2 << M;
-}
+int rj = savemtx(outdir + "/J.mtx", J);
+int rm = savemtx(outdir + "/M.mtx", M);
 {
     ofstream f(outdir + "/bnd.txt");
     for (int i = 0; i < bnd.n; i++) f << bnd(i) << endl;

@@ -1,4 +1,4 @@
-# Convert FreeFEM COO dumps (bench/stability_*.edp output) into benchmark
+# Convert FreeFEM savemtx dumps (bench/stability_*.edp output) into benchmark
 # problem files for run_benchmark.jl.
 #
 # The FreeFEM scripts emit the generalized pencil  J x = λ M x  on the full
@@ -15,8 +15,8 @@
 #   julia --project=. bench/make_fem_matrices.jl \
 #       --in TestEnv/fem/cavity_N16_Re400 [--mode pencil] [--out matrices/x.mtx]
 #
-# Callable from other scripts: include this file and use read_coo,
-# reduced_pencil, write_pencil_mtx.
+# Callable from other scripts: include this file and use reduced_pencil,
+# write_pencil_mtx.
 
 using ArgParse
 using DelimitedFiles
@@ -24,11 +24,14 @@ using LinearAlgebra
 using Printf
 using SparseArrays
 
+include(joinpath(@__DIR__, "..", "src", "RQIBench.jl"))
+using .RQIBench
+
 function parse_cli()
-    s = ArgParseSettings(description = "FreeFEM COO pencil -> benchmark problem file (.mtx pencil or dense shift-invert).")
+    s = ArgParseSettings(description = "FreeFEM pencil -> benchmark problem file (.mtx pencil or dense shift-invert).")
     @add_arg_table! s begin
         "--in", "-i"
-            help = "Directory with J.txt, M.txt, bnd.txt (and optionally info.txt, U.txt)"
+            help = "Directory with J.mtx, M.mtx, bnd.txt (and optionally info.txt, U.txt)"
             arg_type = String
             required = true
         "--out", "-o"
@@ -59,33 +62,8 @@ function parse_cli()
     return parse_args(s)
 end
 
-"""Read a FreeFEM `ofstream << matrix` COO dump into a SparseMatrixCSC."""
-function read_coo(path)
-    I, J, V = Int[], Int[], Float64[]
-    n = m = -1
-    dims_read = false
-    open(path) do io
-        for line in eachline(io)
-            s = strip(line)
-            (isempty(s) || startswith(s, "#")) && continue
-            f = split(s)
-            if !dims_read
-                n, m = Int(parse(Float64, f[1])), Int(parse(Float64, f[2]))
-                dims_read = true
-                continue
-            end
-            push!(I, parse(Int, f[1]))
-            push!(J, parse(Int, f[2]))
-            push!(V, parse(Float64, f[3]))
-        end
-    end
-    dims_read || error("no dimension line found in $path")
-    isempty(I) && error("no entries found in $path")
-    imin, jmin = minimum(I), minimum(J)
-    base = (imin == 0 && jmin == 0) ? 0 : (imin >= 1 && jmin >= 1) ? 1 :
-        error("inconsistent index base in $path (min i=$imin, min j=$jmin)")
-    return sparse(I .+ (1 - base), J .+ (1 - base), V, n, m)
-end
+"""Read a FreeFEM `savemtx` Matrix Market dump into a SparseMatrixCSC."""
+read_fem_matrix(path) = RQIBench._read_mtx(path)
 
 read_vector(path) = vec(readdlm(path, Float64, comments = true))
 
@@ -112,8 +90,8 @@ end
 
 """Reduced pencil (Jr, Mr) after eliminating flagged Dirichlet DOFs."""
 function reduced_pencil(indir; bnd_tol = 1e-14)
-    J = read_coo(joinpath(indir, "J.txt"))
-    M = read_coo(joinpath(indir, "M.txt"))
+    J = read_fem_matrix(joinpath(indir, "J.mtx"))
+    M = read_fem_matrix(joinpath(indir, "M.mtx"))
     bnd = read_vector(joinpath(indir, "bnd.txt"))
     n = size(J, 1)
     size(J) == (n, n) && size(M) == (n, n) || error("pencil not square")
