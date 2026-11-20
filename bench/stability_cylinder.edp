@@ -1,0 +1,161 @@
+// Linearized Navier–Stokes stability — 2D flow past a circular cylinder
+// (FreeFEM 4.12). Assembles the pencil  J x = λ M x  for temporal modes of
+// the linearized equations about the Newton-computed steady base flow.
+//
+// Domain: [xin, xout] x [-yw, yw] with a hole of radius rc at the origin.
+// Base-flow BCs: uniform inflow/far-field u = (U0,0) on inlet(1), top(2),
+// bottom(4); no-slip on the cylinder (5); traction-free outflow (3)
+// (natural "do-nothing" condition — no `on` term).
+// Perturbations: homogeneous Dirichlet on 1,2,4,5; the outflow DOFs are
+// kept with the natural condition. Re = U0·(2 rc)/nu, Hopf at Re_c ≈ 46.
+//
+// Same conventions and output layout as stability_cavity.edp; parameters
+// are supplied by a generated wrapper (bench/gen_fem_matrices.jl):
+//
+//   int nc = 64;           // cylinder segments
+//   int ni = 16;           // inlet/outlet segments
+//   int nt = 64;           // top/bottom segments
+//   real xin = -6., xout = 18., yw = 6., rc = 0.5;
+//   real Re = 60., U0 = 1., epsP = 1e-8, nwtol = 1e-10, sigRef = 0.;
+//   int maxIt = 30, nev = 10;
+//   string outdir = "TestEnv/fem/cylinder_Re60";
+//   include "/work/bench/stability_cylinder.edp";
+
+verbosity = 1;
+exec("mkdir -p " + outdir);
+
+// CCW outer boundary (interior on the left); cylinder clockwise = hole.
+border bot(t=xin, xout)   { x = t;          y = -yw; label = 4; }
+border out(t=-yw, yw)     { x = xout;       y = t;   label = 3; }
+border top(t=xout, xin)   { x = t;          y = yw;  label = 2; }
+border inlet(t=yw, -yw)   { x = xin;        y = t;   label = 1; }
+border cyl(t=2*pi, 0)     { x = rc*cos(t);  y = rc*sin(t); label = 5; }
+
+mesh Th = buildmesh(bot(nt) + out(ni) + top(nt) + inlet(ni) + cyl(nc));
+
+fespace Vh(Th, P2);
+fespace Qh(Th, P1);
+fespace Xh(Th, [P2, P2, P1]);
+
+Xh [u1, u2, p];
+Xh [du1, du2, dp];
+
+real nu = 1.0 / Re;
+
+// --- Stokes initial guess ------------------------------------------
+varf vStokes([u1,u2,p],[v1,v2,q]) = int2d(Th)(
+      nu*(dx(u1)*dx(v1)+dy(u1)*dy(v1) + dx(u2)*dx(v2)+dy(u2)*dy(v2))
+    - p*(dx(v1)+dy(v2))
+    + (dx(u1)+dy(u2))*q
+    + epsP*p*q )
+  + on(1,2,4, u1=U0, u2=0)
+  + on(5, u1=0, u2=0);
+
+{
+    matrix S = vStokes(Xh, Xh, solver=UMFPACK);
+    real[int] b = vStokes(0, Xh);
+    u1[] = S^-1 * b;
+}
+
+// --- Newton, geometric Re continuation -----------------------------
+varf vRes([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+      (u1*dx(u1)+u2*dy(u1))*v1 + (u1*dx(u2)+u2*dy(u2))*v2
+    - p*(dx(v1)+dy(v2))
+    + nu*(dx(u1)*dx(v1)+dy(u1)*dy(v1) + dx(u2)*dx(v2)+dy(u2)*dy(v2))
+    + (dx(u1)+dy(u2))*q
+    + epsP*p*q );
+
+varf vJac([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+      (u1*dx(du1)+u2*dy(du1))*v1 + (u1*dx(du2)+u2*dy(du2))*v2
+    + (du1*dx(u1)+du2*dy(u1))*v1 + (du1*dx(u2)+du2*dy(u2))*v2
+    - dp*(dx(v1)+dy(v2))
+    + nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q )
+  + on(1,2,4,5, du1=0, du2=0);
+
+real Rec = min(Re, 40.0);
+while (true) {
+    nu = 1.0 / Rec;
+    for (int it = 0; it < maxIt; it++) {
+        matrix Jn = vJac(Xh, Xh, solver=UMFPACK);
+        real[int] R = vRes(0, Xh);
+        real[int] d = Jn^-1 * R;
+        u1[] = u1[] - d;
+        real dn = d.linfty;
+        cout << "  Re=" << Rec << "  it=" << it
+             << "  |d|inf=" << dn << "  |R|inf=" << R.linfty << endl;
+        if (dn < nwtol) break;
+    }
+    if (Rec == Re) break;
+    Rec = min(2.0*Rec, Re);
+}
+nu = 1.0 / Re;
+
+// --- Eigenvalue pencil  J x = λ M x  (no BCs; eliminate later) ----
+varf vJe([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+    - (u1*dx(du1)+u2*dy(du1))*v1 - (u1*dx(du2)+u2*dy(du2))*v2
+    - (du1*dx(u1)+du2*dy(u1))*v1 - (du1*dx(u2)+du2*dy(u2))*v2
+    + dp*(dx(v1)+dy(v2))
+    - nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q );
+
+varf vJeT([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+    - (u1*dx(du1)+u2*dy(du1))*v1 - (u1*dx(du2)+u2*dy(du2))*v2
+    - (du1*dx(u1)+du2*dy(u1))*v1 - (du1*dx(u2)+du2*dy(u2))*v2
+    + dp*(dx(v1)+dy(v2))
+    - nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q )
+  + on(1,2,4,5, du1=0, du2=0);
+
+varf vMass([du1,du2,dp],[v1,v2,q]) = int2d(Th)( du1*v1 + du2*v2 );
+
+// Dirichlet boundaries for the perturbations: 1,2,4,5 (not outflow 3).
+varf vBnd([du1,du2,dp],[v1,v2,q]) =
+      int1d(Th,1)(v1+v2) + int1d(Th,2)(v1+v2)
+    + int1d(Th,4)(v1+v2) + int1d(Th,5)(v1+v2);
+
+matrix J = vJe(Xh, Xh);
+matrix M = vMass(Xh, Xh);
+real[int] bnd = vBnd(0, Xh);
+
+matrix Jt = vJeT(Xh, Xh);
+real[int] ev(nev), evi(nev);
+int k = EigenValue(Jt, M, sym=false, sigma=sigRef, value=ev, ivalue=evi,
+                   tol=1e-10, maxit=0, ncv=0);
+k = min(k, nev);
+
+{
+    ofstream f(outdir + "/J.txt"); f.precision(17); f << J;
+    ofstream f2(outdir + "/M.txt"); f2.precision(17); f2 << M;
+}
+{
+    ofstream f(outdir + "/bnd.txt");
+    for (int i = 0; i < bnd.n; i++) f << bnd(i) << endl;
+    ofstream f2(outdir + "/U.txt");
+    for (int i = 0; i < u1[].n; i++) f2 << u1[](i) << endl;
+}
+Vh xv = x, yv = y;
+Qh xq = x, yq = y;
+{
+    ofstream f(outdir + "/xyV.txt");
+    for (int i = 0; i < Vh.ndof; i++) f << xv[](i) << " " << yv[](i) << endl;
+    ofstream f2(outdir + "/xyQ.txt");
+    for (int i = 0; i < Qh.ndof; i++) f2 << xq[](i) << " " << yq[](i) << endl;
+}
+{
+    ofstream f(outdir + "/info.txt");
+    f << "# FreeFEM cylinder stability pencil" << endl;
+    f << "Re " << Re << endl;
+    f << "U0 " << U0 << endl;
+    f << "epsP " << epsP << endl;
+    f << "ndof " << Xh.ndof << "  (Vh " << Vh.ndof << " x2 + Qh " << Qh.ndof << ")" << endl;
+    f << "sigma_ref " << sigRef << endl;
+    f << "# eigenvalues of J x = lambda M x nearest sigma_ref (ARPACK, re im):" << endl;
+    for (int i = 0; i < k; i++)
+        f << ev(i) << " " << evi(i) << endl;
+}
+
+cout << "wrote pencil to " << outdir << endl;

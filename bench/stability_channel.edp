@@ -1,0 +1,104 @@
+// Linearized Navier–Stokes stability — 2D plane Poiseuille flow in a
+// periodic channel (FreeFEM 4.12). Assembles the pencil  J x = λ M x  for
+// temporal modes of the linearized equations about the analytic base flow
+//     U = (1 - y², 0),   y ∈ [-1, 1],   x ∈ [0, L] periodic.
+// Re is based on centerline velocity and half-height: Re_c = 5772
+// (Tollmien–Schlichting, wavenumber α ≈ 1.02; with L = 2π the allowed
+// integer wavenumbers include α = 1, whose neutral Re ≈ 5775).
+//
+// square() labels: 1 bottom, 2 right, 3 top, 4 left. The fespace option
+// periodic=[[4,y],[2,y]] identifies the left/right boundaries. Walls are
+// labels 1 and 3 — their velocity DOFs are flagged in bnd.txt for
+// elimination (v = 0 perturbation BCs). No base-flow solve is needed.
+//
+// Parameters supplied by a generated wrapper (bench/gen_fem_matrices.jl):
+//
+//   int NX = 24, N = 16;   // cells in x, y
+//   real L = 2*pi;         // channel length in half-heights
+//   real Re = 6000., epsP = 1e-8, sigRef = 0.;
+//   int nev = 10;
+//   string outdir = "TestEnv/fem/channel_N16_Re6000";
+//   include "/work/bench/stability_channel.edp";
+
+verbosity = 1;
+exec("mkdir -p " + outdir);
+
+mesh Th = square(NX, N, [L*x, 2*y - 1]);
+
+fespace Vh(Th, P2);
+fespace Qh(Th, P1);
+fespace Xh(Th, [P2, P2, P1], periodic=[[4,y],[2,y]]);
+
+Xh [u1, u2, p];
+
+// Analytic plane Poiseuille base flow (exact NS solution; the balancing
+// pressure gradient does not enter the linearized EVP).
+[u1, u2, p] = [1 - y*y, 0, 0];
+
+real nu = 1.0 / Re;
+
+// --- Eigenvalue pencil  J x = λ M x  (no BCs; eliminate later) ----
+varf vJe([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+    - (u1*dx(du1)+u2*dy(du1))*v1 - (u1*dx(du2)+u2*dy(du2))*v2
+    - (du1*dx(u1)+du2*dy(u1))*v1 - (du1*dx(u2)+du2*dy(u2))*v2
+    + dp*(dx(v1)+dy(v2))
+    - nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q );
+
+varf vJeT([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+    - (u1*dx(du1)+u2*dy(du1))*v1 - (u1*dx(du2)+u2*dy(du2))*v2
+    - (du1*dx(u1)+du2*dy(u1))*v1 - (du1*dx(u2)+du2*dy(u2))*v2
+    + dp*(dx(v1)+dy(v2))
+    - nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q )
+  + on(1,3, du1=0, du2=0);
+
+varf vMass([du1,du2,dp],[v1,v2,q]) = int2d(Th)( du1*v1 + du2*v2 );
+
+// Walls only (labels 1,3); the periodic seam (2,4) is NOT a boundary.
+varf vBnd([du1,du2,dp],[v1,v2,q]) = int1d(Th,1)(v1+v2) + int1d(Th,3)(v1+v2);
+
+matrix J = vJe(Xh, Xh);
+matrix M = vMass(Xh, Xh);
+real[int] bnd = vBnd(0, Xh);
+
+matrix Jt = vJeT(Xh, Xh);
+real[int] ev(nev), evi(nev);
+int k = EigenValue(Jt, M, sym=false, sigma=sigRef, value=ev, ivalue=evi,
+                   tol=1e-10, maxit=0, ncv=0);
+k = min(k, nev);
+
+{
+    ofstream f(outdir + "/J.txt"); f.precision(17); f << J;
+    ofstream f2(outdir + "/M.txt"); f2.precision(17); f2 << M;
+}
+{
+    ofstream f(outdir + "/bnd.txt");
+    for (int i = 0; i < bnd.n; i++) f << bnd(i) << endl;
+    ofstream f2(outdir + "/U.txt");
+    for (int i = 0; i < u1[].n; i++) f2 << u1[](i) << endl;
+}
+Vh xv = x, yv = y;
+Qh xq = x, yq = y;
+{
+    ofstream f(outdir + "/xyV.txt");
+    for (int i = 0; i < Vh.ndof; i++) f << xv[](i) << " " << yv[](i) << endl;
+    ofstream f2(outdir + "/xyQ.txt");
+    for (int i = 0; i < Qh.ndof; i++) f2 << xq[](i) << " " << yq[](i) << endl;
+}
+{
+    ofstream f(outdir + "/info.txt");
+    f << "# FreeFEM channel (plane Poiseuille) stability pencil" << endl;
+    f << "L " << L << endl;
+    f << "Re " << Re << endl;
+    f << "epsP " << epsP << endl;
+    f << "ndof " << Xh.ndof << "  (Vh " << Vh.ndof << " x2 + Qh " << Qh.ndof << ")" << endl;
+    f << "sigma_ref " << sigRef << endl;
+    f << "# eigenvalues of J x = lambda M x nearest sigma_ref (ARPACK, re im):" << endl;
+    for (int i = 0; i < k; i++)
+        f << ev(i) << " " << evi(i) << endl;
+}
+
+cout << "wrote pencil to " << outdir << endl;

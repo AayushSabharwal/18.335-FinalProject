@@ -29,6 +29,40 @@ julia --project=. bench/run_benchmark.jl \
     --start-strategy largest --eltype Float32 --tol 1e-5 --inner-reltol 1e-6
 ```
 
+## FreeFEM → FEM matrices (linearized NS stability)
+
+`bench/stability_{cavity,cylinder,channel}.edp` assemble the pencil
+`J x = λ M x` for the eigenproblem in `TestEnv/doc.tex` (Taylor–Hood
+P2/P1). Geometry parameters are injected by generated wrappers (no
+`getARGV()` in FreeFEM 4.12); `bench/gen_fem_matrices.jl` drives the
+whole pipeline: wrapper → `docker run freefem/freefem` → COO dump in
+`TestEnv/fem/<key>_Re<Re>/` → boundary-DOF elimination → stacked 2n×n
+`[J; M]` Matrix Market file in `matrices/fem_<key>_Re<Re>.mtx`.
+
+```sh
+julia --project=. bench/gen_fem_matrices.jl            # all jobs
+julia --project=. bench/gen_fem_matrices.jl cavity:4000 # one case
+julia --project=. bench/gen_fem_matrices.jl --skip-ff channel # reconvert only
+```
+
+`bench/make_fem_matrices.jl` does the conversion standalone
+(`--mode pencil|shiftinvert`) and is `include`d by the generator.
+
+Geometries: cavity (lid on top, Newton base flow, Re_c≈8000),
+cylinder wake (Hopf, Re_c≈46 resolved — shifts UP on coarse meshes),
+Poiseuille channel (x-periodic fespace, analytic U=1-y², Re_c=5772).
+
+Benchmark a pencil (`largest` needs `--search-shift` for singular B;
+target slightly right of the leading eigenvalue — see the `%` comment
+block inside each .mtx for ARPACK reference eigenvalues):
+
+```sh
+julia --project=. bench/run_benchmark.jl \
+    --matrices matrices/fem_channel_L2piN16_Re5000.mtx \
+    --out results/fem.json --start-strategy largest --search-shift 0.05
+#    Complex pairs need --eltype ComplexF64.
+```
+
 Quick sanity check (all methods converge on a small symmetric matrix):
 
 ```sh

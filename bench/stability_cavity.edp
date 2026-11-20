@@ -1,0 +1,180 @@
+// Linearized Navier–Stokes stability — 2D lid-driven cavity (FreeFEM 4.12).
+//
+// Assembles the generalized eigenvalue pencil  J x = λ M x  for temporal
+// modes  v = v̂ e^{λt}, q = q̂ e^{λt}  of the linearized equations
+//     λ v̂ = -(U·∇)v̂ - (v̂·∇)U - ∇q̂ + (1/Re) Δv̂,
+//     div v̂ = 0,
+// about the steady base flow (U,P) computed by Newton iteration.
+//
+// Discretization: Taylor–Hood P2/P1 on square(N,N). Lid u = (U0,0) on the
+// top boundary (square() label 3), no-slip on the other walls.
+//
+// The pencil is assembled on the FULL DOF set with NO boundary conditions;
+// boundary velocity DOFs are flagged in bnd.txt and must be eliminated
+// downstream (homogeneous Dirichlet for the perturbations). The pressure
+// null space is regularized with an epsP·p·q penalty.
+//
+// Outputs (COO triples, 0-based indices — the FreeFEM `ofstream << matrix`
+// format):
+//   J.txt M.txt   pencil matrices (full DOF set)
+//   bnd.txt       per-DOF boundary indicator (>0 on boundary velocity DOFs)
+//   U.txt         base flow DOF vector [U1; U2; P]
+//   xyV.txt       P2 (velocity) DOF coordinates, "x y" per line
+//   xyQ.txt       P1 (pressure) DOF coordinates
+//   info.txt      metadata + ARPACK reference eigenvalues near sigRef
+//
+// Run (from repo root):
+//   docker run --rm -v "$PWD":/work -w /work freefem/freefem:latest \
+//       FreeFem++ bench/stability_cavity.edp -nw
+//
+// Parameters must be defined BEFORE this file is included — this file is
+// meant to be run through a generated wrapper (see bench/gen_fem_matrices.jl):
+//
+//   int N = 16;            // cells per side; reduced n ≈ 2.2k for N=16
+//   real Re = 400.;        // Reynolds number (U0 = L = 1)
+//   real U0 = 1.;          // lid velocity
+//   real epsP = 1e-8;      // pressure penalty
+//   int maxIt = 30;        // Newton iterations per continuation step
+//   real nwtol = 1e-10;    // Newton correction L∞ tolerance
+//   real sigRef = 0.;      // shift for the in-container ARPACK check
+//   int nev = 10;          // ARPACK eigenvalues requested near sigRef
+//   string outdir = "TestEnv/fem/cavity_N16_Re400";
+//   include "/work/bench/stability_cavity.edp";
+
+verbosity = 1;
+exec("mkdir -p " + outdir);
+
+mesh Th = square(N, N);
+fespace Vh(Th, P2);
+fespace Qh(Th, P1);
+fespace Xh(Th, [P2, P2, P1]);
+
+Xh [u1, u2, p];       // state; base flow after Newton
+Xh [du1, du2, dp];    // Newton correction / eigenmode trial slot
+
+real nu = 1.0 / Re;
+
+// --- Stokes initial guess (lid = label 3) -------------------------
+varf vStokes([u1,u2,p],[v1,v2,q]) = int2d(Th)(
+      nu*(dx(u1)*dx(v1)+dy(u1)*dy(v1) + dx(u2)*dx(v2)+dy(u2)*dy(v2))
+    - p*(dx(v1)+dy(v2))
+    + (dx(u1)+dy(u2))*q
+    + epsP*p*q )
+  + on(3, u1=U0, u2=0)
+  + on(1,2,4, u1=0, u2=0);
+
+{
+    matrix S = vStokes(Xh, Xh, solver=UMFPACK);
+    real[int] b = vStokes(0, Xh);
+    u1[] = S^-1 * b;
+}
+
+// --- Steady Navier–Stokes by Newton, geometric Re continuation ----
+// Residual F(u):  (u·∇)u + ∇p - νΔu = 0, div u = 0  (weak form, p·q penalty)
+varf vRes([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+      (u1*dx(u1)+u2*dy(u1))*v1 + (u1*dx(u2)+u2*dy(u2))*v2
+    - p*(dx(v1)+dy(v2))
+    + nu*(dx(u1)*dx(v1)+dy(u1)*dy(v1) + dx(u2)*dx(v2)+dy(u2)*dy(v2))
+    + (dx(u1)+dy(u2))*q
+    + epsP*p*q );
+
+// Jacobian DF(u)·δ:  (u·∇)δ + (δ·∇)u + ∇δp - νΔδ,  div δ
+varf vJac([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+      (u1*dx(du1)+u2*dy(du1))*v1 + (u1*dx(du2)+u2*dy(du2))*v2
+    + (du1*dx(u1)+du2*dy(u1))*v1 + (du1*dx(u2)+du2*dy(u2))*v2
+    - dp*(dx(v1)+dy(v2))
+    + nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q )
+  + on(1,2,3,4, du1=0, du2=0);
+
+real Rec = min(Re, 100.0);
+while (true) {
+    nu = 1.0 / Rec;
+    for (int it = 0; it < maxIt; it++) {
+        matrix Jn = vJac(Xh, Xh, solver=UMFPACK);
+        real[int] R = vRes(0, Xh);
+        real[int] d = Jn^-1 * R;
+        u1[] = u1[] - d;
+        real dn = d.linfty;
+        cout << "  Re=" << Rec << "  it=" << it
+             << "  |d|inf=" << dn << "  |R|inf=" << R.linfty << endl;
+        if (dn < nwtol) break;
+    }
+    if (Rec == Re) break;
+    Rec = min(2.0*Rec, Re);
+}
+nu = 1.0 / Re;
+
+// --- Eigenvalue pencil  J x = λ M x  (no BCs; eliminate later) ----
+// Weak form of  λv̂ = -(U·∇)v̂ - (v̂·∇)U - ∇q̂ + νΔv̂,  div v̂ = 0:
+// viscous and pressure terms integrated by parts (v̂ = 0 on ∂Ω).
+varf vJe([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+    - (u1*dx(du1)+u2*dy(du1))*v1 - (u1*dx(du2)+u2*dy(du2))*v2
+    - (du1*dx(u1)+du2*dy(u1))*v1 - (du1*dx(u2)+du2*dy(u2))*v2
+    + dp*(dx(v1)+dy(v2))
+    - nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q );
+
+// Same operator with TGV Dirichlet rows — for the in-container ARPACK
+// check only (the spurious ~1e30 eigenvalues sit far from sigRef).
+varf vJeT([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
+    - (u1*dx(du1)+u2*dy(du1))*v1 - (u1*dx(du2)+u2*dy(du2))*v2
+    - (du1*dx(u1)+du2*dy(u1))*v1 - (du1*dx(u2)+du2*dy(u2))*v2
+    + dp*(dx(v1)+dy(v2))
+    - nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
+    + (dx(du1)+dy(du2))*q
+    + epsP*dp*q )
+  + on(1,2,3,4, du1=0, du2=0);
+
+varf vMass([du1,du2,dp],[v1,v2,q]) = int2d(Th)( du1*v1 + du2*v2 );
+
+// >0 on boundary velocity DOFs (both components; pressure DOFs stay 0)
+varf vBnd([du1,du2,dp],[v1,v2,q]) = int1d(Th)( v1 + v2 );
+
+matrix J = vJe(Xh, Xh);
+matrix M = vMass(Xh, Xh);
+real[int] bnd = vBnd(0, Xh);
+
+// --- reference eigenvalues near sigRef (ARPACK shift-invert) ------
+matrix Jt = vJeT(Xh, Xh);
+real[int] ev(nev), evi(nev);
+int k = EigenValue(Jt, M, sym=false, sigma=sigRef, value=ev, ivalue=evi,
+                   tol=1e-10, maxit=0, ncv=0);
+k = min(k, nev);
+
+// --- dump ---------------------------------------------------------
+{
+    ofstream f(outdir + "/J.txt"); f.precision(17); f << J;
+    ofstream f2(outdir + "/M.txt"); f2.precision(17); f2 << M;
+}
+{
+    ofstream f(outdir + "/bnd.txt");
+    for (int i = 0; i < bnd.n; i++) f << bnd(i) << endl;
+    ofstream f2(outdir + "/U.txt");
+    for (int i = 0; i < u1[].n; i++) f2 << u1[](i) << endl;
+}
+Vh xv = x, yv = y;
+Qh xq = x, yq = y;
+{
+    ofstream f(outdir + "/xyV.txt");
+    for (int i = 0; i < Vh.ndof; i++) f << xv[](i) << " " << yv[](i) << endl;
+    ofstream f2(outdir + "/xyQ.txt");
+    for (int i = 0; i < Qh.ndof; i++) f2 << xq[](i) << " " << yq[](i) << endl;
+}
+{
+    ofstream f(outdir + "/info.txt");
+    f << "# FreeFEM cavity stability pencil" << endl;
+    f << "N " << N << endl;
+    f << "Re " << Re << endl;
+    f << "U0 " << U0 << endl;
+    f << "epsP " << epsP << endl;
+    f << "ndof " << Xh.ndof << "  (Vh " << Vh.ndof << " x2 + Qh " << Qh.ndof << ")" << endl;
+    f << "sigma_ref " << sigRef << endl;
+    f << "# eigenvalues of J x = lambda M x nearest sigma_ref (ARPACK, re im):" << endl;
+    for (int i = 0; i < k; i++)
+        f << ev(i) << " " << evi(i) << endl;
+}
+
+cout << "wrote pencil to " << outdir << endl;
