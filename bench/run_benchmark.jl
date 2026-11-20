@@ -303,6 +303,17 @@ _sanitize(x::AbstractVector) = [_sanitize(v) for v in x]
 _sanitize(x::AbstractMatrix) = [_sanitize(collect(r)) for r in eachrow(x)]
 _sanitize(d::AbstractDict) = Dict(k => _sanitize(v) for (k, v) in pairs(d))
 
+"""Write `out` to `path` atomically (temp file + rename) so a job killed
+mid-benchmark still leaves a valid partial JSON on disk."""
+function write_results(path, out)
+    tmp = path * ".tmp"
+    open(tmp, "w") do io
+        JSON.print(io, _sanitize(out), 4)
+    end
+    mv(tmp, path; force = true)
+    return nothing
+end
+
 """Serialization for one start's deterministic RQIResult (timing lives at
 the method level: the iterate trial measures ALL starts together)."""
 function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
@@ -565,6 +576,12 @@ function main()
             "coverage" => Dict{String,Any}(),
         )
 
+        # Push the entry before the method loop: it is mutated in place as
+        # each method finishes, and write_results is called per method so
+        # an interrupted job leaves partial results on disk.
+        push!(out["matrices"], entry)
+        write_results(args["out"], out)
+
         results = Tuple{String,RQIResult}[]
         total_times = Dict{String,Float64}()
         σ0_init = T(starts[1][2])
@@ -666,14 +683,12 @@ function main()
                        sum(r -> r.counters.n_factorizations, mresults)
             println(stderr, "$nconv/$(length(mresults)) converged " *
                           "facs=$tot_facs λ=$(mresults[1].eigenvalue)")
+            write_results(args["out"], out)
         end
 
         entry["coverage"] = _sanitize(coverage_summary(results, F, match_tol,
                                                      total_times))
-        push!(out["matrices"], entry)
-        open(args["out"], "w") do io
-            JSON.print(io, _sanitize(out), 4)
-        end
+        write_results(args["out"], out)
     end
     println(stderr, "wrote $(args["out"])")
 end
