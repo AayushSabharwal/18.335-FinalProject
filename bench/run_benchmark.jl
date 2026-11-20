@@ -314,7 +314,7 @@ end
 """Serialization for one start's deterministic RQIResult (timing lives at
 the method level: the iterate trial measures ALL starts together)."""
 function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
-    i, λo, _ = nearest_oracle(oracle_F, r.eigenvalue)
+    _, λo, _ = nearest_oracle(oracle_F, r.eigenvalue)
     c = r.counters
     _sanitize(Dict{String,Any}(
         "start_index" => start_index,
@@ -410,6 +410,9 @@ function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol
     finite_idx = findall(isfinite, F.values)
     n_finite = length(finite_idx)
     ilargest = finite_idx[argmax(real.(F.values[finite_idx]))]
+    # Position of each finite F.values index in the serialized
+    # oracle.eigenvalues array (which contains only finite values).
+    fpos = Dict(i => k for (k, i) in enumerate(finite_idx))
     out = Dict{String,Any}()
     for lab in labels
         idxs = Int[]
@@ -426,7 +429,7 @@ function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol
             "n_eigenvalues" => n_finite,
             "n_found" => length(idxs),
             "coverage" => length(idxs) / n_finite,
-            "oracle_indices_found" => idxs,
+            "oracle_indices_found" => [fpos[i] for i in idxs],
             "eigenvalues_found" => _sanitize(F.values[idxs]),
             "found_largest" => ilargest in idxs,
             "total_runtime_ns_median" => get(total_times, lab, NaN),
@@ -538,7 +541,9 @@ function main()
             "bytes_allocated" => oracle_trial.memory,
             "alloc_count" => oracle_trial.allocs,
             "maxrss_delta_bytes" => Sys.maxrss() - rss0,
-            "eigenvalues" => _sanitize(collect(F.values)),
+            # Non-finite eigenvalues (singular-B pencils produce Inf) are
+            # dropped entirely rather than serialized as null.
+            "eigenvalues" => _sanitize([λ for λ in F.values if isfinite(λ)]),
         )
 
         entry = Dict{String,Any}(
