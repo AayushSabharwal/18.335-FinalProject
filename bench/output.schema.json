@@ -168,9 +168,9 @@
     "matrix_entry": {
       "type": "object",
       "required": [
-        "file", "n", "generalized", "symmetric", "norm_inf", "eltype",
-        "match_tol", "n_starts", "search", "starts_benchmark", "oracle",
-        "runs", "coverage"
+        "file", "n", "generalized", "sparse", "nnz_A", "nnz_B", "symmetric",
+        "norm_inf", "eltype", "match_tol", "n_starts", "search",
+        "starts_benchmark", "oracle", "runs", "coverage"
       ],
       "properties": {
         "file": { "type": "string" },
@@ -178,6 +178,20 @@
         "generalized": {
           "type": "boolean",
           "description": "true when the input was a 2n×n stacked pencil [A; B] and all solves ran on the generalized problem Ax = λBx"
+        },
+        "sparse": {
+          "type": "boolean",
+          "description": "true when the input was a Matrix Market (.mtx) file and all solves ran on SparseMatrixCSC operands (UMFPACK)"
+        },
+        "nnz_A": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Stored nonzeros of A; n² for dense inputs"
+        },
+        "nnz_B": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Stored nonzeros of B; null for standard problems, n² for dense pencils"
         },
         "symmetric": { "type": "boolean" },
         "norm_inf": { "type": ["number", "null"] },

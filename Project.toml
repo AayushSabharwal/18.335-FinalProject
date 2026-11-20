@@ -6,7 +6,10 @@ JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JSONSchema = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
 LIKWID = "bf22376a-e803-4184-b2ed-56326e3bff83"
 LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
+PProf = "e4faabce-9ead-11e9-39d9-4379958e3056"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+SuiteSparse = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [compat]
 ArgParse = "1"

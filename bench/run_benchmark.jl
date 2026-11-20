@@ -9,6 +9,7 @@ using LinearAlgebra
 using Random
 using Dates
 using Printf
+using SparseArrays
 
 include(joinpath(@__DIR__, "..", "src", "RQIBench.jl"))
 using .RQIBench
@@ -256,7 +257,8 @@ function matrix_files(spec::String)
         p = strip(part)
         if isdir(p)
             append!(files, sort!([joinpath(p, f) for f in readdir(p)
-                                 if endswith(f, ".txt") && isfile(joinpath(p, f))]))
+                                 if (endswith(f, ".txt") || endswith(f, ".mtx")) &&
+                                    isfile(joinpath(p, f))]))
         elseif isfile(p)
             push!(files, p)
         else
@@ -539,6 +541,10 @@ function main()
             "file" => file,
             "n" => n,
             "generalized" => B !== nothing,
+            "sparse" => A isa SparseMatrixCSC,
+            "nnz_A" => A isa SparseMatrixCSC ? nnz(A) : n * n,
+            "nnz_B" => B === nothing ? nothing :
+                       B isa SparseMatrixCSC ? nnz(B) : n * n,
             "symmetric" => issymmetric(A),
             "norm_inf" => normA,
             "eltype" => string(T),

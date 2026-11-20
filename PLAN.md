@@ -19,9 +19,18 @@ ProjectReal/
 
 ## Input format
 
-Each input file is a delimited dense text matrix (`readdlm`; `#` comment
-lines skipped; comma delimiter if the first data line contains one, else
-whitespace):
+Two file formats are supported, both keyed off the same shape conventions:
+
+- **Delimited dense text** (`readdlm`; `#` comment lines skipped; comma
+  delimiter if the first data line contains one, else whitespace).
+- **Matrix Market `.mtx`** coordinate files — parsed into
+  `SparseMatrixCSC` so all solves run sparse (UMFPACK for factorizations
+  and preconditioners, GMRES on sparse matvecs). Real/integer/complex/
+  pattern fields and symmetric/hermitian/skew storage are supported.
+  `entry.sparse = true` and `entry.nnz_A`/`entry.nnz_B` record the stored
+  nonzeros (`n²` for dense inputs).
+
+In either format:
 
 - **`n×n`** — standard problem `Ax = λx`, `B = I` throughout.
 - **`2n×n`** — generalized pencil `Ax = λBx`, interpreted as the stacked
@@ -29,6 +38,14 @@ whitespace):
   `(A - σB)w = Bv`, the oracle runs `eigen(A, B)` (QZ), and
   `entry.generalized = true`. Infinite oracle eigenvalues from a singular
   `B` are excluded from coverage matching (RQI can never converge to one).
+
+On the sparse path the shifted matrix is held in a union-pattern
+workspace `S` (pattern(A) ∪ pattern(B) ∪ diagonal, merged by column);
+`shift_into!` scatters values through a dense column buffer, and the
+GMRES preconditioner refreshes via UMFPACK `lu!` which reuses the
+symbolic factorization — the sparse analog of the dense in-place
+`getrf!` update. The oracle always densifies (`eigen`/`QZ` are
+dense-only).
 
 `src/RQIBench.jl` is a plain module included by the driver (no package
 structure needed). The driver is run as
@@ -105,10 +122,10 @@ Near-singular `(A - σB)` is the norm in RQI. If `lu` reports a zero pivot
   once.
 - `run_oracle(A)` -> `(eigenvalues, eigenvectors)`.
 - `BenchmarkResult` struct + `to_dict` -> JSON.
-- `load_matrix(path)`: delimited dense text via `readdlm`; delimiter
-  sniffed from the first line (`,` if present, else whitespace). Requires
-  square. `load_problem(path)` accepts `n×n` or stacked `2n×n` `[A; B]`
-  (see Input format).
+- `load_matrix(path)`: delimited dense text via `readdlm`, or sparse
+  `SparseMatrixCSC` from Matrix Market `.mtx`; the format is picked by
+  extension. Requires square. `load_problem(path)` accepts `n×n` or
+  stacked `2n×n` `[A; B]` (see Input format).
 
 ## Driver script (`bench/run_benchmark.jl`)
 

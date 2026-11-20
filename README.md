@@ -14,14 +14,16 @@ generalized pencil `Ax = λBx` (`B = I` recovers the standard case).
   instrumentation
 - `bench/profile.jl` — standalone sampling profiler for the iterate phase
 - `bench/output.schema.json` — JSON Schema for result files
-- `bench/make_matrices.jl` — regenerates `matrices/*.txt`
-- `matrices/` — input problems, one per text file
+- `bench/make_matrices.jl` — regenerates `matrices/*.txt`; `fem` mode
+  converts a FreeFEM COO pencil dump into a stacked `.mtx`
+- `matrices/` — input problems, one per file
 - `results/` — JSON output
 - `PLAN.md` — design notes and algorithm details
 
 ## Input format
 
-Delimited dense text matrices (`readdlm`; `#` comment lines skipped):
+Dense delimited text (`.txt`) or sparse Matrix Market (`.mtx`); `.mtx`
+inputs run all solves on `SparseMatrixCSC` via UMFPACK:
 
 - `n×n` — standard problem, `B = I`
 - `2n×n` — generalized pencil, stacked blocks: `A` = first `n` rows,
