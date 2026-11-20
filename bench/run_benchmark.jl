@@ -234,9 +234,6 @@ function parse_cli()
             help = "Tolerance for matching a found eigenvalue to an oracle eigenvalue in the coverage summary (NaN → auto: max(10*tol, 10*sqrt(eps(T)))*||A||)"
             arg_type = Float64
             default = NaN
-        "--skip-oracle-vectors"
-            help = "Do not serialize the oracle eigenvector matrix"
-            action = :store_true
         "--skip-sanity"
             help = "Skip the pre-flight sanity check"
             action = :store_true
@@ -332,7 +329,6 @@ function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
         "gmres_stalled_solves" => c.gmres_stalled,
         "gmres_iterations_per_step" => c.gmres_iters_per_step,
         "eigenvalue" => r.eigenvalue,
-        "eigenvector" => r.eigenvector,
         "final_residual" => r.final_residual,
         "residual_history" => c.residual_history,
         "shift_history" => c.shift_history,
@@ -544,8 +540,6 @@ function main()
             "alloc_count" => oracle_trial.allocs,
             "maxrss_delta_bytes" => Sys.maxrss() - rss0,
             "eigenvalues" => _sanitize(collect(F.values)),
-            "eigenvectors" => args["skip-oracle-vectors"] ? nothing :
-                             _sanitize(Matrix(F.vectors)),
         )
 
         entry = Dict{String,Any}(

@@ -142,10 +142,6 @@
       "type": "array",
       "items": { "$ref": "#/$defs/scalar" }
     },
-    "scalar_matrix": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/scalar_vector" }
-    },
     "trial_stats": {
       "type": "object",
       "description": "BenchmarkTools trial summary",
@@ -241,8 +237,7 @@
       "required": [
         "eltype", "runtime_ns_median", "runtime_ns_min",
         "runtime_ns_samples", "gc_time_ns_max", "bytes_allocated",
-        "alloc_count", "maxrss_delta_bytes", "eigenvalues", "eigenvectors",
-        "flops"
+        "alloc_count", "maxrss_delta_bytes", "eigenvalues", "flops"
       ],
       "properties": {
         "eltype": {
@@ -260,13 +255,6 @@
         "alloc_count": { "type": "integer", "minimum": 0 },
         "maxrss_delta_bytes": { "type": "integer" },
         "eigenvalues": { "$ref": "#/$defs/scalar_vector" },
-        "eigenvectors": {
-          "anyOf": [
-            { "type": "null" },
-            { "$ref": "#/$defs/scalar_matrix" }
-          ],
-          "description": "Column-flattened eigenvector matrix; null when --skip-oracle-vectors"
-        },
         "flops": { "$ref": "#/$defs/flops" }
       },
       "additionalProperties": false
@@ -404,7 +392,7 @@
         "outer_iterations", "n_shifts", "n_factorizations",
         "n_perturbations", "gmres_iterations_total",
         "gmres_stalled_solves", "gmres_iterations_per_step",
-        "eigenvalue", "eigenvector", "final_residual",
+        "eigenvalue", "final_residual",
         "residual_history", "shift_history",
         "oracle_nearest_eigenvalue", "eigenvalue_abs_error",
         "eigenvector_error"
@@ -429,7 +417,6 @@
           "items": { "type": "integer", "minimum": 0 }
         },
         "eigenvalue": { "$ref": "#/$defs/scalar" },
-        "eigenvector": { "$ref": "#/$defs/scalar_vector" },
         "final_residual": { "type": ["number", "null"] },
         "residual_history": {
           "type": "array",

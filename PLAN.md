@@ -73,7 +73,7 @@ Variants (`method` tag in JSON):
 
 | tag | description |
 |---|---|
-| `oracle_eig` | `eigen(A)` / `eigen(A, B)` via LAPACK; baseline. Full spectrum + eigenvectors stored once per matrix. |
+| `oracle_eig` | `eigen(A)` / `eigen(A, B)` via LAPACK; baseline. Full spectrum stored once per matrix (eigenvectors used for errors but not serialized). |
 | `fixed_shift_lu` | Inverse iteration: factorize `LU(A - σ0 B)` once, `set_b` + reuse for all iterations. |
 | `rqi_lu` | Classic RQI: σ updated every iteration; `set_A` triggers refactorization via `LUFactorization()`. |
 | `rqi_gmres_input_prec` | σ updated every iteration; inner solve by `KrylovJL_GMRES()` preconditioned on the left by `Pl = lu(A - σ0 B)`, fixed forever. |
@@ -183,7 +183,7 @@ Per (matrix × method) run entry — `init`/`totals` aggregate counters, and
   "maxrss_delta_bytes": 0,
   "starts": [{
     "sigma0": 2.5, "converged": true, "outer_iterations": 5,
-    "eigenvalue": 3.141592653589793, "eigenvector": [0.123..., ...],
+    "eigenvalue": 3.141592653589793,
     "final_residual": 1.2e-14, "residual_history": [3.4e-1, ...],
     "shift_history": [2.9, 3.13, ...],
     "oracle_nearest_eigenvalue": 3.141592653589793,
