@@ -314,7 +314,7 @@ end
 """Serialization for one start's deterministic RQIResult (timing lives at
 the method level: the iterate trial measures ALL starts together)."""
 function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
-    i, λo, u = nearest_oracle(oracle_F, r.eigenvalue)
+    i, λo, _ = nearest_oracle(oracle_F, r.eigenvalue)
     c = r.counters
     _sanitize(Dict{String,Any}(
         "start_index" => start_index,
@@ -334,7 +334,6 @@ function start_entry_dict(r::RQIResult, start_index, σ0, oracle_F)
         "shift_history" => c.shift_history,
         "oracle_nearest_eigenvalue" => λo,
         "eigenvalue_abs_error" => abs(r.eigenvalue - λo),
-        "eigenvector_error" => eigenvector_error(r.eigenvector, u),
     ))
 end
 

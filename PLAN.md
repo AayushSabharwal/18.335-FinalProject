@@ -187,8 +187,7 @@ Per (matrix × method) run entry — `init`/`totals` aggregate counters, and
     "final_residual": 1.2e-14, "residual_history": [3.4e-1, ...],
     "shift_history": [2.9, 3.13, ...],
     "oracle_nearest_eigenvalue": 3.141592653589793,
-    "eigenvalue_abs_error": 1e-15,
-    "eigenvector_error": 2.3e-14
+    "eigenvalue_abs_error": 1e-15
   }]
 }
 ```
@@ -231,8 +230,7 @@ Everything is generic over `T = --eltype` (Float16/32/64, BigFloat,
 ComplexF32/64): `RQICounters{T,R}`, `RQIResult{T,R}`,
 `SolverState{M,C,T,R}`. The oracle always runs in ≥ Float64 (`BigFloat`
 stays `BigFloat`) so low-precision runs are measured against an accurate
-reference. `eigenvector_error` is the phase-invariant `sin θ` subspace
-distance.
+reference.
 
 ## Environment
 

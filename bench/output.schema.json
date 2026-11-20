@@ -394,8 +394,7 @@
         "gmres_stalled_solves", "gmres_iterations_per_step",
         "eigenvalue", "final_residual",
         "residual_history", "shift_history",
-        "oracle_nearest_eigenvalue", "eigenvalue_abs_error",
-        "eigenvector_error"
+        "oracle_nearest_eigenvalue", "eigenvalue_abs_error"
       ],
       "properties": {
         "start_index": { "type": "integer", "minimum": 0 },
@@ -424,11 +423,7 @@
         },
         "shift_history": { "$ref": "#/$defs/scalar_vector" },
         "oracle_nearest_eigenvalue": { "$ref": "#/$defs/scalar" },
-        "eigenvalue_abs_error": { "type": ["number", "null"] },
-        "eigenvector_error": {
-          "type": ["number", "null"],
-          "description": "sin-theta subspace distance to the nearest oracle eigenvector"
-        }
+        "eigenvalue_abs_error": { "type": ["number", "null"] }
       },
       "additionalProperties": false
     },
