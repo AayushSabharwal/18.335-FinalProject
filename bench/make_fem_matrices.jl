@@ -13,7 +13,7 @@
 #                       write it as whitespace-delimited dense text.
 #
 #   julia --project=. bench/make_fem_matrices.jl \
-#       --in TestEnv/fem/cavity_N16_Re400 [--mode pencil] [--out matrices/x.mtx]
+#       --in TestEnv/fem/cavity_N16_Re400 [--mode pencil] [--out matrices/fem/x.mtx]
 #
 # Callable from other scripts: include this file and use reduced_pencil,
 # write_pencil_mtx.
@@ -35,7 +35,7 @@ function parse_cli()
             arg_type = String
             required = true
         "--out", "-o"
-            help = "Output path (default: matrices/fem_<dirname>.mtx for --mode=pencil)"
+            help = "Output path (default: matrices/fem/fem_<dirname>.mtx for --mode=pencil)"
             arg_type = String
             default = ""
         "--mode"
@@ -164,7 +164,7 @@ function main()
 
     if args["mode"] == "pencil"
         isempty(out) &&
-            (out = joinpath("matrices", "fem_" * basename(indir) * ".mtx"))
+            (out = joinpath("matrices", "fem", "fem_" * basename(indir) * ".mtx"))
         Jr, Mr = write_pencil_mtx(indir, out; bnd_tol = args["bnd-tol"])
         if !args["no-verify"]
             λ = reference_spectrum(Jr, Mr)
@@ -196,7 +196,7 @@ function main()
     A = Matrix(F \ Matrix(Mr))
 
     isempty(out) &&
-        (out = joinpath("matrices", "fem_" * basename(indir) * "_si.txt"))
+        (out = joinpath("matrices", "fem", "fem_" * basename(indir) * "_si.txt"))
     mkpath(dirname(abspath(out)))
 
     μ = eigvals(A)

@@ -35,9 +35,10 @@ julia --project=. bench/run_benchmark.jl \
 `J x = λ M x` for the eigenproblem in `TestEnv/doc.tex` (Taylor–Hood
 P2/P1). Geometry parameters are injected by generated wrappers (no
 `getARGV()` in FreeFEM 4.12); `bench/gen_fem_matrices.jl` drives the
-whole pipeline: wrapper → `docker run freefem/freefem` → COO dump in
-`TestEnv/fem/<key>_Re<Re>/` → boundary-DOF elimination → stacked 2n×n
-`[J; M]` Matrix Market file in `matrices/fem_<key>_Re<Re>.mtx`.
+whole pipeline: wrapper → `docker run freefem/freefem` → `savemtx` dumps
+(`J.mtx`/`M.mtx` + `bnd.txt`) in `TestEnv/fem/<key>_Re<Re>/` → boundary-DOF
+elimination → stacked 2n×n `[J; M]` Matrix Market file in
+`matrices/fem/fem_<key>_Re<Re>.mtx` (created automatically).
 
 ```sh
 julia --project=. bench/gen_fem_matrices.jl            # all jobs
@@ -58,7 +59,7 @@ block inside each .mtx for ARPACK reference eigenvalues):
 
 ```sh
 julia --project=. bench/run_benchmark.jl \
-    --matrices matrices/fem_channel_L2piN16_Re5000.mtx \
+    --matrices matrices/fem/fem_channel_L2piN16_Re5000.mtx \
     --out results/fem.json --start-strategy largest --search-shift 0.05
 #    Complex pairs need --eltype ComplexF64.
 ```

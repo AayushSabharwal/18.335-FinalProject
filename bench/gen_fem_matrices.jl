@@ -11,7 +11,7 @@
 # (TestEnv/fem/run_<job>.edp) that defines the parameter block and includes
 # bench/<geometry>.edp — FreeFEM 4.12 has no getARGV(), so parameters are
 # injected textually. FreeFEM writes J.mtx/M.mtx (via savemtx) plus bnd.txt
-# to TestEnv/fem/<key>_<tag>_Re<Re>/ and the pencil lands in matrices/.
+# to TestEnv/fem/<key>_<tag>_Re<Re>/ and the pencil lands in matrices/fem/.
 #
 # Stability notes:
 #   cavity   Re_c ~ 8000    leading complex pair approaches the axis
@@ -25,7 +25,7 @@ include(joinpath(@__DIR__, "make_fem_matrices.jl"))
 const REPO  = abspath(joinpath(@__DIR__, ".."))
 const IMAGE = get(ENV, "FREEFEM_IMAGE", "freefem/freefem:latest")
 const FEMDIR = joinpath("TestEnv", "fem")
-const MATDIR = "matrices"
+const MATDIR = joinpath("matrices", "fem")
 
 # header = FreeFEM declaration lines defining geometry/mesh params.
 # Re convention: cavity/cylinder — U0·L/ν with U0=L=D=1; channel — U_cl·h/ν.

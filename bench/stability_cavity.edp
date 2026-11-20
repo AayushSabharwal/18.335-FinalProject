@@ -14,9 +14,9 @@
 // downstream (homogeneous Dirichlet for the perturbations). The pressure
 // null space is regularized with an epsP·p·q penalty.
 //
-// Outputs (COO triples, 0-based indices — the FreeFEM `ofstream << matrix`
-// format):
-//   J.txt M.txt   pencil matrices (full DOF set)
+// Outputs:
+//   J.mtx M.mtx   pencil matrices in MatrixMarket format (full DOF set,
+//                 written via `savemtx` from the MatrixMarket plugin)
 //   bnd.txt       per-DOF boundary indicator (>0 on boundary velocity DOFs)
 //   U.txt         base flow DOF vector [U1; U2; P]
 //   xyV.txt       P2 (velocity) DOF coordinates, "x y" per line
