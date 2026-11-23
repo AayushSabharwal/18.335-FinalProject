@@ -48,7 +48,11 @@ step and retry from the last converged state when `|R|inf > 1e-4`,
 than the pencil's `epsP=1e-8`, which is too stiff for SNES). Cavity
 `on()` order matters: lid BC must come LAST — corner DOFs move with the
 lid; wall-last stalls SNES at ~1e-4. `res_base` in `info.txt` records
-the base-flow residual — check it's ≲1e-4 before trusting a pencil.
+the base-flow residual — check it's ≲2e-4 before trusting a pencil.
+`rTol` (SNES acceptance |R|∞) is a job field (`rtol`) in
+gen_fem_matrices.jl, default 1e-4; the cavity ladder uses 2e-4 because
+the penalized-Newton floor sits at ~1.0e-4 on some meshes (N8 stalls:
+DIVERGED_TR_DELTA at the floor).
 
 ```sh
 julia --project=. bench/gen_fem_matrices.jl            # all jobs

@@ -96,7 +96,6 @@ func int funcJ(real[int]& inPETSc) {
     return 0;
 }
 
-real rTol = 1e-4;
 real Rec = 0;
 real target = min(Re, 40.0);
 real[int] Uconv = u1[];      // last converged state
