@@ -234,6 +234,15 @@ function parse_cli()
             help = "Tolerance for matching a found eigenvalue to an oracle eigenvalue in the coverage summary (NaN → auto: max(10*tol, 10*sqrt(eps(T)))*||A||)"
             arg_type = Float64
             default = NaN
+        "--oracle"
+            help = "Oracle eigensolver: dense (full spectrum via eigen/QZ), arpack (--nev largest-real-part eigenvalues via eigs — a partial oracle; with --search-shift, eigenvalues nearest that shift), auto → arpack for sparse inputs, dense otherwise"
+            arg_type = String
+            default = "auto"
+            range_tester = x -> x in ("dense", "arpack", "auto")
+        "--nev"
+            help = "Number of eigenvalues requested from the arpack oracle"
+            arg_type = Int
+            default = 20
         "--skip-sanity"
             help = "Skip the pre-flight sanity check"
             action = :store_true
@@ -518,21 +527,63 @@ function main()
             args["match-tol"]
 
         Toracle = oracle_eltype(T)
-        Aoracle = Matrix{Toracle}(A)
-        Boracle = B === nothing ? nothing : Matrix{Toracle}(B)
+        oracle_mode = args["oracle"]
+        oracle_mode == "auto" &&
+            (oracle_mode = A isa SparseMatrixCSC ? "arpack" : "dense")
+        # --search-shift doubles as the ARPACK shift-invert target σ
+        oracle_sigma = ssearch_arg === nothing ? nothing : Toracle(ssearch_arg)
+
+        if oracle_mode == "arpack"
+            Toracle in (Float64, ComplexF64) ||
+                error("--oracle arpack needs double precision " *
+                      "(oracle eltype for $T is $Toracle)")
+            Aoracle = SparseMatrixCSC{Toracle,Int}(A)
+            Boracle = B === nothing ? nothing : SparseMatrixCSC{Toracle,Int}(B)
+            # ARPACK's nonsymmetric generalized mode is always shift-invert:
+            # without sigma it computes the wrong end of the spectrum.
+            Boracle !== nothing && oracle_sigma === nothing && error(
+                "--oracle arpack: generalized pencils need a shift-invert " *
+                "target; supply --search-shift")
+            # () -> not f() = : a local f() = definition would hoist one
+            # generic function per name and let the else-branch overwrite it
+            oracle_call = () -> run_oracle_eigs(Aoracle, Boracle;
+                                                nev = args["nev"],
+                                                sigma = oracle_sigma)
+        else
+            Aoracle = Matrix{Toracle}(A)
+            Boracle = B === nothing ? nothing : Matrix{Toracle}(B)
+            oracle_call = () -> (B === nothing ? run_oracle(Aoracle) :
+                                                 run_oracle(Aoracle, Boracle))
+        end
+
         # Deterministic run (doubles as JIT warmup) + BenchmarkTools trial,
         # same as the method runs — a fair O(n³) vs O(n³) comparison.
-        F = B === nothing ? run_oracle(Aoracle) : run_oracle(Aoracle, Boracle)
-        rss0 = Sys.maxrss()
-        oracle_trial = run(@benchmarkable(
-            $B === nothing ? run_oracle($Aoracle) :
-                             run_oracle($Aoracle, $Boracle));
-                           samples = args["samples"], evals = 1)
-        oracle_flops = measure_flops() do
-            B === nothing ? run_oracle(Aoracle) : run_oracle(Aoracle, Boracle)
+        F, nconv, niter, nmult = try
+            out_o = oracle_call()
+            oracle_mode == "arpack" ? out_o : (out_o, nothing, nothing, nothing)
+        catch err
+            if err isa LinearAlgebra.SingularException
+                error("$oracle_mode oracle: factorization failed " *
+                      "(singular B?); supply --search-shift")
+            end
+            rethrow()
         end
+        rss0 = Sys.maxrss()
+        oracle_trial = run(@benchmarkable($oracle_call());
+                           samples = args["samples"], evals = 1)
+        oracle_flops = measure_flops(oracle_call)
         oracle_dict = Dict{String,Any}(
+            "method" => oracle_mode,
             "eltype" => string(Toracle),
+            "nev" => oracle_mode == "arpack" ? args["nev"] : nothing,
+            "n_converged" => nconv,
+            "niter" => niter,
+            "nmult" => nmult,
+            # LR = largest real part (plain mode); LM = eigenvalues nearest
+            # sigma via the custom shift-invert operator
+            "which" => oracle_mode == "arpack" ?
+                       (oracle_sigma === nothing ? "LR" : "LM") : nothing,
+            "sigma" => oracle_sigma,
             "flops" => oracle_flops,
             "runtime_ns_median" => median(oracle_trial.times),
             "runtime_ns_min" => minimum(oracle_trial.times),

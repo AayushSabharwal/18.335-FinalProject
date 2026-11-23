@@ -36,7 +36,8 @@ inputs run all solves on `SparseMatrixCSC` via UMFPACK:
 - `rqi_gmres_input_prec` — GMRES preconditioned by the initial `lu(A − σ₀B)`
 - `rqi_gmres_prev_prec` — GMRES with the most recent factorization as
   preconditioner; `τ` controls when it refactorizes
-- `oracle_eig` — `eigen(A)` / `eigen(A, B)` baseline
+- `oracle_eig` — `eigen(A)` / `eigen(A, B)` baseline (`--oracle dense`), or
+  `eigs` (`--oracle arpack`); `auto` picks arpack for sparse inputs
 
 ## Running
 

@@ -44,8 +44,15 @@ workspace `S` (pattern(A) ∪ pattern(B) ∪ diagonal, merged by column);
 `shift_into!` scatters values through a dense column buffer, and the
 GMRES preconditioner refreshes via UMFPACK `lu!` which reuses the
 symbolic factorization — the sparse analog of the dense in-place
-`getrf!` update. The oracle always densifies (`eigen`/`QZ` are
-dense-only).
+`getrf!` update. The oracle is selected by `--oracle` (`auto` →
+`arpack` for sparse inputs, `dense` otherwise): `dense` densifies and
+runs `eigen`/`QZ` (full spectrum); `arpack` runs `eigs` — plain
+Arnoldi `which=:LR` for standard problems, or our own shift-invert
+operator `(A - σB)⁻¹B` wrapped as an `AbstractMatrix` when
+`--search-shift` is given (mandatory for generalized pencils: ARPACK's
+own `bmat="G"` mode is unreliable for singular `B`, so we never use
+it). The arpack oracle returns a partial spectrum of `--nev`
+eigenvalues, which is also the coverage denominator.
 
 `src/RQIBench.jl` is a plain module included by the driver (no package
 structure needed). The driver is run as
@@ -73,7 +80,7 @@ Variants (`method` tag in JSON):
 
 | tag | description |
 |---|---|
-| `oracle_eig` | `eigen(A)` / `eigen(A, B)` via LAPACK; baseline. Full spectrum stored once per matrix (eigenvectors used for errors but not serialized). |
+| `oracle_eig` | `eigen(A)` / `eigen(A, B)` via LAPACK (`--oracle dense`), or `eigs` (`--oracle arpack`); baseline. The dense oracle stores the full spectrum once per matrix (eigenvectors used for errors but not serialized); the arpack oracle stores the `--nev` eigenvalues it converged. |
 | `fixed_shift_lu` | Inverse iteration: factorize `LU(A - σ0 B)` once, `set_b` + reuse for all iterations. |
 | `rqi_lu` | Classic RQI: σ updated every iteration; `set_A` triggers refactorization via `LUFactorization()`. |
 | `rqi_gmres_input_prec` | σ updated every iteration; inner solve by `KrylovJL_GMRES()` preconditioned on the left by `Pl = lu(A - σ0 B)`, fixed forever. |
@@ -120,7 +127,7 @@ Near-singular `(A - σB)` is the norm in RQI. If `lu` reports a zero pivot
   `init_state(method, A, σ0)` / `solve_step!(state, A, σ, v)` /
   `on_shift!(state, σ_new)`. So the loop/timing/counting code is written
   once.
-- `run_oracle(A)` -> `(eigenvalues, eigenvectors)`.
+- `run_oracle(A)` -> `(eigenvalues, eigenvectors)`; `run_oracle_eigs(A[,B]; nev, sigma)` -> `Eigen` + ARPACK counters (`ShiftInvertOp` lazy matrix for the shift-invert mode).
 - `BenchmarkResult` struct + `to_dict` -> JSON.
 - `load_matrix(path)`: delimited dense text via `readdlm`, or sparse
   `SparseMatrixCSC` from Matrix Market `.mtx`; the format is picked by

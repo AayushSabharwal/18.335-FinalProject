@@ -12,6 +12,7 @@ eigenvalue it converges to. Generic over the element type `T` of `A`
 """
 module RQIBench
 
+using Arpack
 using EnumX
 using LinearAlgebra
 using LinearSolve
@@ -24,7 +25,8 @@ import SuiteSparse
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
        RQICounters, RQIResult, RQIFail, run_rqi, run_rqi!, init_state,
-       reset_state!, run_oracle, load_matrix, load_problem, method_tag,
+       reset_state!, run_oracle, run_oracle_eigs, load_matrix, load_problem,
+       method_tag,
        nearest_oracle, eigenvector_error, gershgorin_bounds, build_starts,
        sanity_check
 
@@ -537,6 +539,91 @@ run_oracle(A::AbstractMatrix) = eigen(Matrix(A))
 """Generalized eigendecomposition baseline (`Ax = λBx`, QZ). Returns the
 `GeneralizedEigen` factorization; `B` singular yields infinite eigenvalues."""
 run_oracle(A::AbstractMatrix, B::AbstractMatrix) = eigen(Matrix(A), Matrix(B))
+
+"""
+    ShiftInvertOp(F, B, n)
+
+Lazy `AbstractMatrix` for the shift-invert operator `C = (A - σB)⁻¹B`,
+where `F` is a factorization of `A - σB`. `eigs` only needs `size` and
+`mul!`, so this lets ARPACK run in *standard* mode on a generalized or
+shifted problem — crucially, ARPACK's own generalized mode (bmat="G") uses
+`B`-inner-products that are degenerate for a singular `B` and returns
+garbage; running standard-mode on `C` sidesteps that entirely: the
+infinite eigenpairs of the pencil are the kernel of `C` and deflate
+automatically (the Krylov space stays in `range(C)`).
+"""
+struct ShiftInvertOp{Tv,F<:Factorization,BM} <: AbstractMatrix{Tv}
+    F::F
+    B::BM
+    n::Int
+    work::Vector{Tv}
+end
+Base.size(o::ShiftInvertOp) = (o.n, o.n)
+LinearAlgebra.issymmetric(::ShiftInvertOp) = false
+LinearAlgebra.ishermitian(::ShiftInvertOp) = false
+function LinearAlgebra.mul!(y::AbstractVector, o::ShiftInvertOp,
+                            x::AbstractVector)
+    mul!(o.work, o.B, x)            # work .= B*x
+    ldiv!(y, o.F, o.work)           # y .= (A - σB) \ work
+    return y
+end
+
+"""
+    run_oracle_eigs(A[, B]; nev, sigma, v0) -> (Eigen, nconv, niter, nmult)
+
+ARPACK partial oracle via `eigs`:
+
+* `sigma === nothing` (standard problems only): the `nev` eigenvalues with
+  the largest real part, plain Arnoldi on `A`.
+* `sigma` given: shift-invert mode — eigenvalues nearest `sigma` are found
+  as the largest-`|`μ`|` eigenpairs `μ = 1/(λ - σ)` of `C = (A - σB)⁻¹B`
+  (see [`ShiftInvertOp`](@ref); mandatory for generalized pencils and the
+  only mode that tolerates a singular `B`). Returned pencil eigenvalues
+  are `λ = σ + 1/μ`.
+
+Double precision only; `nev` is clamped to `n - 2`. The returned `Eigen`
+is restricted to the `nconv ≤ nev` converged pairs so it can stand in for
+a dense `eigen`/`eigen(A, B)` result downstream. A deterministic `v0`
+(default `ones`) keeps the benchmark reproducible.
+"""
+function run_oracle_eigs(A::AbstractMatrix, B::Union{AbstractMatrix,Nothing}=nothing;
+                         nev::Integer=20, sigma=nothing,
+                         v0::Union{AbstractVector,Nothing}=nothing,
+                         tol::Real=0.0)
+    n = size(A, 1)
+    nev = min(nev, n - 2)
+    nev >= 1 || error("run_oracle_eigs needs n >= 3, got n=$n")
+    if sigma === nothing
+        B === nothing || error(
+            "run_oracle_eigs: generalized pencils require sigma " *
+            "(ARPACK's own bmat=\"G\" mode is unreliable for singular B)")
+        kw = (; nev, which = :LR, ritzvec = true,
+               v0 = v0 === nothing ? ones(eltype(A), n) : v0)
+        λ, X, nconv, niter, nmult, _ = eigs(A; kw...)
+        nconv = min(nconv, length(λ))
+    else
+        To = eltype(A)
+        Tσ = promote_type(To, typeof(sigma))
+        F = factorize(Tσ.(A) - sigma * (B === nothing ? I : B))
+        op = ShiftInvertOp{Tσ,typeof(F),typeof(B === nothing ? I : B)}(
+            F, B === nothing ? I : B, n, zeros(Tσ, n))
+        kw = (; nev, which = :LM, tol, ritzvec = true,
+               v0 = v0 === nothing ? ones(Tσ, n) : v0)
+        μ, X, nconv, niter, nmult, _ = eigs(op; kw...)
+        nconv = min(nconv, length(μ))
+        μc = μ[1:nconv]
+        # |μ| ≲ eps·|μ|max ⇔ pencil eigenvalues at ∞ (kernel of B) or
+        # unconverged garbage: keep only λ = σ + 1/μ that stay finite
+        keep = abs.(μc) .> eps(real(Tσ)) * maximum(abs, μc)
+        λ = sigma .+ inv.(μc[keep])
+        X = X[:, findall(keep)]
+        nconv = length(λ)
+    end
+    nconv < nev &&
+        @warn "eigs converged only $nconv of $nev requested eigenvalues"
+    nconv == 0 && error("eigs converged no eigenvalues")
+    return Eigen(collect(λ[1:nconv]), X[:, 1:nconv]), nconv, niter, nmult
+end
 
 """
     load_matrix(path, T = Float64) -> Matrix{T} or SparseMatrixCSC{T}
