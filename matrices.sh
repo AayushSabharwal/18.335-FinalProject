@@ -1,9 +1,10 @@
 #!/bin/bash
 
 #SBATCH -p mit_preemptable
-#SBATCH -c 64
-#SBATCH --mem=32G
+#SBATCH -N 1
+#SBATCH -c 16
+#SBATCH --mem=48G
+#SBATCH -o gen_fem_%j.log
 
 module load apptainer/1.5.2
-cd 18.335-FinalProject
-julia --project=@. bench/gen_fem_matrices.jl --apptainer
+julia --project=@. bench/gen_fem_matrices.jl --apptainer --jobs=4
