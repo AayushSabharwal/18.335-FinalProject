@@ -7,4 +7,5 @@
 #SBATCH -o gen_fem_%j.log
 
 module load apptainer/1.5.2
-julia --project=@. bench/gen_fem_matrices.jl --apptainer --jobs=4
+export FREEFEM_IMAGE=$HOME/images/freefem.sif
+julia --project=@. bench/gen_fem_matrices.jl --apptainer --jobs=8
