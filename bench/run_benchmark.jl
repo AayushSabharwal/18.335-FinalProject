@@ -421,6 +421,11 @@ function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol
     finite_idx = findall(isfinite, F.values)
     n_finite = length(finite_idx)
     ilargest = finite_idx[argmax(real.(F.values[finite_idx]))]
+    # A conjugate pair counts as one rightmost eigenvalue: argmax picks a
+    # single member but RQI may converge to its conjugate, which lies
+    # |2·Im λ| away — far outside match_tol. Count any found eigenvalue
+    # whose real part matches the max.
+    re_largest = real(F.values[ilargest])
     # Position of each finite F.values index in the serialized
     # oracle.eigenvalues array (which contains only finite values).
     fpos = Dict(i => k for (k, i) in enumerate(finite_idx))
@@ -442,7 +447,7 @@ function coverage_summary(results::Vector{Tuple{String,RQIResult}}, F, match_tol
             "coverage" => length(idxs) / n_finite,
             "oracle_indices_found" => [fpos[i] for i in idxs],
             "eigenvalues_found" => _sanitize(F.values[idxs]),
-            "found_largest" => ilargest in idxs,
+            "found_largest" => any(i -> abs(real(F.values[i]) - re_largest) <= match_tol, idxs),
             "total_runtime_ns_median" => get(total_times, lab, NaN),
         )
     end
