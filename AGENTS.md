@@ -35,10 +35,20 @@ julia --project=. bench/run_benchmark.jl \
 `J x = λ M x` for the eigenproblem in `TestEnv/doc.tex` (Taylor–Hood
 P2/P1). Geometry parameters are injected by generated wrappers (no
 `getARGV()` in FreeFEM 4.12); `bench/gen_fem_matrices.jl` drives the
-whole pipeline: wrapper → `docker run freefem/freefem` → `savemtx` dumps
-(`J.mtx`/`M.mtx` + `bnd.txt`) in `TestEnv/fem/<key>_Re<Re>/` → boundary-DOF
-elimination → stacked 2n×n `[J; M]` Matrix Market file in
-`matrices/fem/fem_<key>_Re<Re>.mtx` (created automatically).
+whole pipeline: wrapper → `docker run freefem/freefem` (`ff-mpirun -np 1`)
+→ `savemtx` dumps (`J.mtx`/`M.mtx` + `bnd.txt`) in
+`TestEnv/fem/<key>_Re<Re>/` → boundary-DOF elimination → stacked 2n×n
+`[J; M]` Matrix Market file in `matrices/fem/fem_<key>_Re<Re>.mtx`
+(created automatically).
+
+Base flow (cavity/cylinder): PETSc `SNESSolve` (trust-region Newton +
+line search, `-pc_type lu`) with geometric Re continuation — halve the
+step and retry from the last converged state when `|R|inf > 1e-4`,
+`assert`-fail if the step collapses. Newton uses `epsN=1e-6` (softer
+than the pencil's `epsP=1e-8`, which is too stiff for SNES). Cavity
+`on()` order matters: lid BC must come LAST — corner DOFs move with the
+lid; wall-last stalls SNES at ~1e-4. `res_base` in `info.txt` records
+the base-flow residual — check it's ≲1e-4 before trusting a pencil.
 
 ```sh
 julia --project=. bench/gen_fem_matrices.jl            # all jobs
@@ -49,9 +59,10 @@ julia --project=. bench/gen_fem_matrices.jl --skip-ff channel # reconvert only
 `bench/make_fem_matrices.jl` does the conversion standalone
 (`--mode pencil|shiftinvert`) and is `include`d by the generator.
 
-Geometries: cavity (lid on top, Newton base flow, Re_c≈8000),
-cylinder wake (Hopf, Re_c≈46 resolved — shifts UP on coarse meshes),
-Poiseuille channel (x-periodic fespace, analytic U=1-y², Re_c=5772).
+Geometries: cavity (lid on top, PETSc Newton base flow; discrete
+Re_c≈4000 on N=16 — physical Re_c≈8000), cylinder wake (Hopf, Re_c≈46
+resolved — shifts UP on coarse meshes), Poiseuille channel (x-periodic
+fespace, analytic U=1-y², Re_c=5772).
 
 Benchmark a pencil (`largest` needs `--search-shift` for singular B;
 target slightly right of the leading eigenvalue — see the `%` comment

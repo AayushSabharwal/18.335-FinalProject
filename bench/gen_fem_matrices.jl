@@ -32,7 +32,7 @@ const MATDIR = joinpath("matrices", "fem")
 const JOBS = [
     (key = "cavity", edp = "stability_cavity.edp", tag = "N16",
      params = ["int N = 16;"],
-     Res = [1000, 4000, 8000]),
+     Res = [1000, 4000, 6000]),
     (key = "cylinder", edp = "stability_cylinder.edp", tag = "D1",
      params = ["int nc = 24;", "int ni = 8;", "int nt = 24;",
                "real xin = -6.;", "real xout = 18.;", "real yw = 6.;",
@@ -66,7 +66,7 @@ end
 function run_freefem(runfile, logfile)
     mkpath(dirname(abspath(logfile)))
     cmd = `docker run --rm -v $REPO:/work -w /work $IMAGE
-           FreeFem++ $runfile -nw`
+           ff-mpirun -np 1 $runfile -nw`
     open(logfile, "w") do io
         run(pipeline(cmd, stdout = io, stderr = io))
     end

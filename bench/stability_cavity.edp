@@ -43,41 +43,47 @@
 
 verbosity = 1;
 load "MatrixMarket"
+load "PETSc"
+macro dimension()2// EOM
+macro def(i)[i, i#B, i#C]//
+macro init(i)[i, i, i]//
+include "macro_ddm.idp"
 exec("mkdir -p " + outdir);
 
 mesh Th = square(N, N);
+func Pk = [P2, P2, P1];
 fespace Vh(Th, P2);
 fespace Qh(Th, P1);
-fespace Xh(Th, [P2, P2, P1]);
+fespace Xh(Th, Pk);
 
-Xh [u1, u2, p];       // state; base flow after Newton
+Xh [u1, u2, p] = [0, 0, 0];       // state; base flow after Newton
 Xh [du1, du2, dp];    // Newton correction / eigenmode trial slot
+
+Mat Jn;
+int[int] n2o;
+macro ThN2O()n2o//
+createMat(Th, Jn, Pk)
 
 real nu = 1.0 / Re;
 
-// --- Stokes initial guess (lid = label 3) -------------------------
-varf vStokes([u1,u2,p],[v1,v2,q]) = int2d(Th)(
-      nu*(dx(u1)*dx(v1)+dy(u1)*dy(v1) + dx(u2)*dx(v2)+dy(u2)*dy(v2))
-    - p*(dx(v1)+dy(v2))
-    + (dx(u1)+dy(u2))*q
-    + epsP*p*q )
-  + on(3, u1=U0, u2=0)
-  + on(1,2,4, u1=0, u2=0);
+// --- Steady Navier–Stokes by PETSc SNES (trust-region Newton + line
+// search), adaptive Re continuation: halve the step and retry from the
+// last converged state when |R|inf stays above rTol; assert-fail if the
+// step collapses so a bad base flow can never emit a pencil. --------
+// Newton uses a milder penalty (1e-6) than the eigenproblem:
+// epsP=1e-8 leaves the saddle Jacobian too stiff for SNES.
+real epsN = 1e-6;
 
-{
-    matrix S = vStokes(Xh, Xh, solver=UMFPACK);
-    real[int] b = vStokes(0, Xh);
-    u1[] = S^-1 * b;
-}
-
-// --- Steady Navier–Stokes by Newton, geometric Re continuation ----
-// Residual F(u):  (u·∇)u + ∇p - νΔu = 0, div u = 0  (weak form, p·q penalty)
+// Residual F(u):  (u·∇)u + ∇p - νΔu = 0, div u = 0  (weak form, p·q
+// penalty). Dirichlet rows are encoded in the residual as  du = u - g.
 varf vRes([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
       (u1*dx(u1)+u2*dy(u1))*v1 + (u1*dx(u2)+u2*dy(u2))*v2
     - p*(dx(v1)+dy(v2))
     + nu*(dx(u1)*dx(v1)+dy(u1)*dy(v1) + dx(u2)*dx(v2)+dy(u2)*dy(v2))
-    + (dx(u1)+dy(u2))*q
-    + epsP*p*q );
+    - (dx(u1)+dy(u2))*q
+    + epsN*p*q )
+  + on(1,2,4, du1 = u1-0, du2 = u2-0)
+  + on(3, du1 = u1-U0, du2 = u2-0);
 
 // Jacobian DF(u)·δ:  (u·∇)δ + (δ·∇)u + ∇δp - νΔδ,  div δ
 varf vJac([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
@@ -85,26 +91,41 @@ varf vJac([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
     + (du1*dx(u1)+du2*dy(u1))*v1 + (du1*dx(u2)+du2*dy(u2))*v2
     - dp*(dx(v1)+dy(v2))
     + nu*(dx(du1)*dx(v1)+dy(du1)*dy(v1) + dx(du2)*dx(v2)+dy(du2)*dy(v2))
-    + (dx(du1)+dy(du2))*q
-    + epsP*dp*q )
-  + on(1,2,3,4, du1=0, du2=0);
+    - (dx(du1)+dy(du2))*q
+    + epsN*dp*q )
+  + on(1,2,4, du1 = u1-0, du2 = u2-0)
+  + on(3, du1 = u1-U0, du2 = u2-0);
 
+set(Jn, sparams = "-pc_type lu");
+func real[int] funcRes(real[int]& inPETSc) {
+    ChangeNumbering(Jn, u1[], inPETSc, inverse = true, exchange = true);
+    real[int] out(Xh.ndof);
+    out = vRes(0, Xh, tgv = -1);
+    real[int] outPETSc;
+    ChangeNumbering(Jn, out, outPETSc);
+    return outPETSc;
+}
+func int funcJ(real[int]& inPETSc) {
+    ChangeNumbering(Jn, u1[], inPETSc, inverse = true, exchange = true);
+    Jn = vJac(Xh, Xh, tgv = -1);
+    return 0;
+}
+
+real rTol = 1e-4;
 real Rec = 0;
 real target = min(Re, 100.0);
 real[int] Uconv = u1[];      // last converged state
+real rR = -1;                // |R|inf of the last solve
 while (true) {
     nu = 1.0 / target;
-    int it;
-    for (it = 0; it < maxIt; it++) {
-        matrix Jn = vJac(Xh, Xh, solver=UMFPACK);
-        real[int] R = vRes(0, Xh);
-        real[int] d = Jn^-1 * R;
-        u1[] = u1[] - d;
-        cout << "  Re=" << target << "  it=" << it
-             << "  |d|inf=" << d.linfty << "  |R|inf=" << R.linfty << endl;
-        if (d.linfty < nwtol) break;
-    }
-    if (it < maxIt) {        // converged: advance the continuation
+    real[int] xPETSc;
+    ChangeNumbering(Jn, u1[], xPETSc);
+    int info = SNESSolve(Jn, funcJ, funcRes, xPETSc,
+        sparams = "-snes_converged_reason -snes_type newtontr -snes_max_it 60");
+    ChangeNumbering(Jn, u1[], xPETSc, inverse = true, exchange = true);
+    real[int] R = vRes(0, Xh, tgv = -1);
+    rR = R.linfty;
+    if (rR < rTol) {         // converged: advance the continuation
         Rec = target;
         if (Rec == Re) break;
         Uconv = u1[];
@@ -113,7 +134,7 @@ while (true) {
         assert(target - Rec > 1.0e-8);
         target = Rec + 0.5*(target - Rec);
         u1[] = Uconv;
-        cout << "  Newton failed; halving continuation step to Re=" << target << endl;
+        cout << "  |R|inf=" << rR << " -> halving step to Re=" << target << endl;
     }
 }
 nu = 1.0 / Re;
@@ -181,6 +202,7 @@ Qh xq = x, yq = y;
     f << "U0 " << U0 << endl;
     f << "epsP " << epsP << endl;
     f << "ndof " << Xh.ndof << "  (Vh " << Vh.ndof << " x2 + Qh " << Qh.ndof << ")" << endl;
+    f << "res_base " << rR << endl;
     f << "sigma_ref " << sigRef << endl;
     f << "# eigenvalues of J x = lambda M x nearest sigma_ref (ARPACK, re im):" << endl;
     for (int i = 0; i < k; i++)
