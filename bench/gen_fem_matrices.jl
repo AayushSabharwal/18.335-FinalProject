@@ -33,14 +33,59 @@ const JOBS = [
     (key = "cavity", edp = "stability_cavity.edp", tag = "N16",
      params = ["int N = 16;"],
      Res = [1000, 4000, 6000]),
+    # mesh-scaling ladder at one Re (n ≈ 9N² + elim): 0.7k → 37k DOFs
+    (key = "cavity", edp = "stability_cavity.edp", tag = "N8",
+     params = ["int N = 8;"],
+     Res = [4000]),
+    (key = "cavity", edp = "stability_cavity.edp", tag = "N24",
+     params = ["int N = 24;"],
+     Res = [4000]),
+    (key = "cavity", edp = "stability_cavity.edp", tag = "N32",
+     params = ["int N = 32;"],
+     Res = [4000]),
+    (key = "cavity", edp = "stability_cavity.edp", tag = "N48",
+     params = ["int N = 48;"],
+     Res = [4000]),
+    (key = "cavity", edp = "stability_cavity.edp", tag = "N64",
+     params = ["int N = 64;"],
+     Res = [4000]),
     (key = "cylinder", edp = "stability_cylinder.edp", tag = "D1",
      params = ["int nc = 24;", "int ni = 8;", "int nt = 24;",
                "real xin = -6.;", "real xout = 18.;", "real yw = 6.;",
                "real rc = 0.5;"],
      Res = [60, 150, 300]),
+    # mesh-scaling ladder at one Re (n ∝ segments²): ~1.5k → ~55k DOFs
+    (key = "cylinder", edp = "stability_cylinder.edp", tag = "D05",
+     params = ["int nc = 12;", "int ni = 4;", "int nt = 12;",
+               "real xin = -6.;", "real xout = 18.;", "real yw = 6.;",
+               "real rc = 0.5;"],
+     Res = [300]),
+    (key = "cylinder", edp = "stability_cylinder.edp", tag = "D2",
+     params = ["int nc = 48;", "int ni = 16;", "int nt = 48;",
+               "real xin = -6.;", "real xout = 18.;", "real yw = 6.;",
+               "real rc = 0.5;"],
+     Res = [300]),
+    (key = "cylinder", edp = "stability_cylinder.edp", tag = "D3",
+     params = ["int nc = 72;", "int ni = 24;", "int nt = 72;",
+               "real xin = -6.;", "real xout = 18.;", "real yw = 6.;",
+               "real rc = 0.5;"],
+     Res = [300]),
     (key = "channel", edp = "stability_channel.edp", tag = "L2piN16",
      params = ["int NX = 24;", "int N = 16;", "real L = 2*pi;"],
      Res = [5000, 6000, 10000]),
+    # mesh-scaling ladder at one Re (n ≈ 9·NX·N + elim): ~0.9k → ~55k DOFs
+    (key = "channel", edp = "stability_channel.edp", tag = "L2piN8",
+     params = ["int NX = 12;", "int N = 8;", "real L = 2*pi;"],
+     Res = [6000]),
+    (key = "channel", edp = "stability_channel.edp", tag = "L2piN32",
+     params = ["int NX = 48;", "int N = 32;", "real L = 2*pi;"],
+     Res = [6000]),
+    (key = "channel", edp = "stability_channel.edp", tag = "L2piN48",
+     params = ["int NX = 72;", "int N = 48;", "real L = 2*pi;"],
+     Res = [6000]),
+    (key = "channel", edp = "stability_channel.edp", tag = "L2piN64",
+     params = ["int NX = 96;", "int N = 64;", "real L = 2*pi;"],
+     Res = [6000]),
 ]
 
 refmt(Re) = isinteger(Re) ? string(Int(Re)) : string(Re)
@@ -63,17 +108,27 @@ function wrapper_edp(job, Re, outdir)
     ), "\n")
 end
 
-function run_freefem(runfile, logfile)
+function run_freefem(runfile, logfile; apptainer = false)
     mkpath(dirname(abspath(logfile)))
-    cmd = `docker run --rm -v $REPO:/work -w /work $IMAGE
-           ff-mpirun -np 1 $runfile -nw`
+    cmd = if apptainer
+        # apptainer pull-caches docker:// URIs as SIF; a .sif path
+        # (FREEFEM_IMAGE=/path/img.sif) is used directly. --cleanenv keeps
+        # host module vars (LD_LIBRARY_PATH, MPI settings) out of the
+        # container so ff-mpirun uses its bundled toolchain.
+        img = endswith(IMAGE, ".sif") ? IMAGE : "docker://" * IMAGE
+        `apptainer exec --cleanenv --bind $REPO:/work --pwd /work
+         $img ff-mpirun -np 1 $runfile -nw`
+    else
+        `docker run --rm -v $REPO:/work -w /work $IMAGE
+         ff-mpirun -np 1 $runfile -nw`
+    end
     open(logfile, "w") do io
         run(pipeline(cmd, stdout = io, stderr = io))
     end
     return nothing
 end
 
-function run_job(job, Re; skip_ff = false)
+function run_job(job, Re; skip_ff = false, apptainer = false)
     key = job.key * "_" * job.tag * "_Re" * refmt(Re)
     indir = joinpath(FEMDIR, key)
     runfile = joinpath(FEMDIR, "run_" * key * ".edp")
@@ -84,7 +139,7 @@ function run_job(job, Re; skip_ff = false)
         mkpath(joinpath(REPO, FEMDIR))
         write(joinpath(REPO, runfile), wrapper_edp(job, Re, indir))
         println(stderr, "== $key: FreeFem++ ($(job.edp)) -> $indir")
-        run_freefem(runfile, logfile)
+        run_freefem(runfile, logfile; apptainer)
     end
     isfile(joinpath(REPO, indir, "J.mtx")) ||
         error("no J.mtx in $indir — see log $logfile")
@@ -93,9 +148,10 @@ function run_job(job, Re; skip_ff = false)
 end
 
 # ---- tiny CLI ------------------------------------------------------------
-# positional filters: "cavity", "cylinder:60", ... ; flags: --skip-ff
+# positional filters: "cavity", "cylinder:60", ... ; flags: --skip-ff, --apptainer
 positional = String[]
 skip_ff = "--skip-ff" in ARGS
+apptainer = "--apptainer" in ARGS
 for a in ARGS
     startswith(a, "--") || push!(positional, a)
 end
@@ -120,7 +176,7 @@ for job in jobs
     Res = get(res_filter, job.key, nothing)
     for Re in (Res === nothing ? job.Res : [Res])
         try
-            run_job(job, Re; skip_ff)
+            run_job(job, Re; skip_ff, apptainer)
         catch err
             @error "job $(job.key) Re=$Re failed" exception = err
         end
