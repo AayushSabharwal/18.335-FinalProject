@@ -794,7 +794,8 @@ Initial `(v0, σ0)` pairs for the pencil `(A, B)`.
   on `(A - sB)\\B`, whose dominant eigenpair is the pencil eigenpair
   nearest `s`; `σ0 = RQ(v0)`. `s` defaults to the right Gershgorin bound
   (of `A`, or of `Â` when `B` is nonsingular); a singular `B` requires
-  `search_shift`.
+  `search_shift`. `search_shift` may be a vector — one start is built per
+  shift (start `j` uses `seed + 1000(j-1)`).
 
 Returns the `(v0, σ0)` pairs plus a `Dict{String,Any}` recording the
 resolved search parameters (`search_shift` for `largest`, `(lo, hi)` for
@@ -804,7 +805,7 @@ call site so the (timed) search phase is type-stable.
 function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
                       seed::Integer, nstarts::Integer, power_iters::Integer,
                       shift::Union{Nothing,T} = nothing,
-                      search_shift::Union{Nothing,T} = nothing) where {T}
+                      search_shift::Union{Nothing,T,AbstractVector} = nothing) where {T}
     n = size(A, 1)
     hasB = !(B isa UniformScaling && B.λ == one(T))
     if shift !== nothing || strategy == "rq"
@@ -829,53 +830,65 @@ function build_starts(strategy::String, A::AbstractMatrix{T}, B = I;
         # nearest eigenvalue is a complex pair and T is real, v0 can only
         # reach the invariant 2-plane and the estimate oscillates; a
         # complex --eltype is needed for RQI to converge to a complex λ.
-        s = if search_shift !== nothing
-            T(search_shift)
+        #
+        # `search_shift` may be a vector: each entry gets its own
+        # factorization + power iteration and produces one start.
+        shifts = if search_shift !== nothing
+            search_shift isa AbstractVector ? T.(search_shift) :
+                                              [T(search_shift)]
         elseif hasB
             FB = lu(B; check = false)
             issuccess(FB) ||
                 error("start-strategy largest on a pencil with singular B " *
                       "requires --search-shift")
-            gershgorin_bounds(FB \ A)[2]
+            [T(gershgorin_bounds(FB \ A)[2])]
         else
-            gershgorin_bounds(A)[2]
+            [T(gershgorin_bounds(A)[2])]
         end
-        s = T(s)
         S = _shift_pattern(A, B)
         work = Vector{T}(undef, n)
         normA = opnorm(A, Inf)
-        F = lu(shift_into!(S, A, B, s, work); check = false)
-        for k in 1:3
-            issuccess(F) && break
-            s = _singular_perturb(s, normA, k)
+        starts = Tuple{Vector{T},T}[]
+        s_used = T[]
+        for (j, s0) in enumerate(shifts)
+            s = T(s0)
             F = lu(shift_into!(S, A, B, s, work); check = false)
-        end
-        issuccess(F) || error("largest: could not factorize A - sB near s=$s")
-        v0 = rand(Xoshiro(seed), T, n)
-        normalize!(v0)
-        w = similar(v0)
-        Bv = similar(v0)
-        scale = max(abs(s), one(real(T)))
-        λest = s
-        for _ in 1:power_iters
-            mul!(Bv, B, v0)
-            ldiv!(w, F, Bv)          # w = C·v0
-            nw = norm(w)
-            nw < eps(real(T)) && break   # v0 in ker C ⊇ infinite eigenpairs
-            μ = dot(v0, w)              # RQ of C at v0
-            λest_new = s + inv(μ)
-            @. v0 = w / nw
-            if isfinite(λest_new) && abs(λest_new - λest) <= 1e-8 * scale
-                λest = λest_new
-                break
+            for k in 1:3
+                issuccess(F) && break
+                s = _singular_perturb(s, normA, k)
+                F = lu(shift_into!(S, A, B, s, work); check = false)
             end
-            λest = λest_new
+            issuccess(F) ||
+                error("largest: could not factorize A - sB near s=$s")
+            v0 = rand(Xoshiro(seed + 1000 * (j - 1)), T, n)
+            normalize!(v0)
+            w = similar(v0)
+            Bv = similar(v0)
+            scale = max(abs(s), one(real(T)))
+            λest = s
+            for _ in 1:power_iters
+                mul!(Bv, B, v0)
+                ldiv!(w, F, Bv)          # w = C·v0
+                nw = norm(w)
+                nw < eps(real(T)) && break   # v0 in ker C ⊇ infinite eigenpairs
+                μ = dot(v0, w)              # RQ of C at v0
+                λest_new = s + inv(μ)
+                @. v0 = w / nw
+                if isfinite(λest_new) && abs(λest_new - λest) <= 1e-8 * scale
+                    λest = λest_new
+                    break
+                end
+                λest = λest_new
+            end
+            # σ0 = generalized Rayleigh quotient of the final vector
+            mul!(w, A, v0)
+            mul!(Bv, B, v0)
+            push!(starts, (v0, T(dot(v0, w) / dot(v0, Bv))))
+            push!(s_used, s)
         end
-        # σ0 = generalized Rayleigh quotient of the final vector
-        mul!(w, A, v0)
-        mul!(Bv, B, v0)
-        return [(v0, T(dot(v0, w) / dot(v0, Bv)))],
-               Dict{String,Any}("search_shift" => s)
+        return starts,
+               Dict{String,Any}("search_shift" =>
+                                length(s_used) == 1 ? s_used[1] : s_used)
     end
     strategy != "grid" && error("unknown start strategy: $strategy")
     # Shift placement for `grid` acts on the standard-form problem

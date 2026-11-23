@@ -353,8 +353,18 @@
               ]
             },
             "search_shift": {
-              "$ref": "#/$defs/scalar",
-              "description": "Resolved shift-invert target s for largest (CLI-provided or Gershgorin-derived)"
+              "description": "Resolved shift-invert target(s) s for largest: scalar for one shift, array when multiple --search-shift values were given (one start each)",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/scalar"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/scalar"
+                  }
+                }
+              ]
             },
             "lo": {
               "type": [
@@ -601,8 +611,20 @@
               "minimum": 0
             },
             "search_shift": {
-              "$ref": "#/$defs/scalar",
-              "description": "Shift-invert target s used by the largest search strategy (null when defaulted to the Gershgorin bound or irrelevant)"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/scalar"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/scalar"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "seed": {
               "type": "integer"

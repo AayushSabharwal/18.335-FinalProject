@@ -186,8 +186,10 @@ function parse_cli()
             arg_type = Float64
             default = NaN
         "--search-shift"
-            help = "Shift-invert target s for --start-strategy largest " *
-                   "(required for pencils with singular B; parsed as eltype)"
+            help = "Shift-invert target(s) s for --start-strategy largest: " *
+                   "comma-separated, one start per shift (required for pencils " *
+                   "with singular B; parsed as eltype; also the arpack oracle " *
+                   "shift-invert target, using the first shift given)"
             arg_type = String
             default = nothing
         "--tol"
@@ -499,8 +501,10 @@ function main()
                     nothing : T(args["shift"])
         # parsed as ComplexF64 so "0.1+1.0im" is accepted; a nonzero imag
         # part under a real --eltype fails at T(...) with InexactError.
+        # Comma-separated list → one largest start per shift.
         ssearch_arg = args["search-shift"] === nothing ? nothing :
-                      T(parse(ComplexF64, args["search-shift"]))
+                      [T(parse(ComplexF64, strip(x)))
+                       for x in split(args["search-shift"], ',')]
         starts, search_info = build_starts(strategy, A, Bm;
                               seed = args["seed"],
                               nstarts = args["nstarts"],
@@ -531,7 +535,9 @@ function main()
         oracle_mode == "auto" &&
             (oracle_mode = A isa SparseMatrixCSC ? "arpack" : "dense")
         # --search-shift doubles as the ARPACK shift-invert target σ
-        oracle_sigma = ssearch_arg === nothing ? nothing : Toracle(ssearch_arg)
+        # (a list uses its first entry — the oracle is a single eigs run)
+        oracle_sigma = ssearch_arg === nothing ? nothing :
+                       Toracle(first(ssearch_arg))
 
         if oracle_mode == "arpack"
             Toracle in (Float64, ComplexF64) ||
