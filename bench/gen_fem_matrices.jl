@@ -148,12 +148,18 @@ function run_job(job, Re; skip_ff = false, apptainer = false)
 end
 
 # ---- tiny CLI ------------------------------------------------------------
-# positional filters: "cavity", "cylinder:60", ... ; flags: --skip-ff, --apptainer
+# positional filters: "cavity", "cylinder:60", ... ;
+# flags: --skip-ff, --apptainer, --jobs=N
 positional = String[]
 skip_ff = "--skip-ff" in ARGS
 apptainer = "--apptainer" in ARGS
+njobs = 1
 for a in ARGS
-    startswith(a, "--") || push!(positional, a)
+    if startswith(a, "--jobs=")
+        njobs = parse(Int, a[8:end])
+    elseif !startswith(a, "--")
+        push!(positional, a)
+    end
 end
 
 jobs = JOBS
@@ -172,13 +178,31 @@ if !isempty(positional)
     jobs = [j for j in JOBS if j.key in wanted]
 end
 
+worklist = Tuple{eltype(JOBS),Float64}[]
 for job in jobs
     Res = get(res_filter, job.key, nothing)
     for Re in (Res === nothing ? job.Res : [Res])
+        push!(worklist, (job, Re))
+    end
+end
+
+if njobs > 1 && apptainer && !endswith(IMAGE, ".sif")
+    # warm the SIF cache serially — concurrent execs of an uncached
+    # docker:// URI would race on the same pull/convert.
+    println(stderr, "== pulling docker://$IMAGE into apptainer cache")
+    run(`apptainer exec --cleanenv docker://$IMAGE true`)
+end
+
+sem = Base.Semaphore(njobs)
+@sync for (job, Re) in worklist
+    @async begin
+        Base.acquire(sem)
         try
             run_job(job, Re; skip_ff, apptainer)
         catch err
             @error "job $(job.key) Re=$Re failed" exception = err
+        finally
+            Base.release(sem)
         end
     end
 end

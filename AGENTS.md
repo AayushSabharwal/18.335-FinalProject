@@ -55,6 +55,7 @@ julia --project=. bench/gen_fem_matrices.jl            # all jobs
 julia --project=. bench/gen_fem_matrices.jl cavity:4000 # one case
 julia --project=. bench/gen_fem_matrices.jl --skip-ff channel # reconvert only
 julia --project=. bench/gen_fem_matrices.jl --apptainer # apptainer instead of docker
+julia --project=. bench/gen_fem_matrices.jl --apptainer --jobs=8  # parallel containers
 ```
 
 `--apptainer` uses `apptainer exec --cleanenv --bind <repo>:/work` with
