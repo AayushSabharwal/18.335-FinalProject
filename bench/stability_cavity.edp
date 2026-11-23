@@ -89,21 +89,32 @@ varf vJac([du1,du2,dp],[v1,v2,q]) = int2d(Th)(
     + epsP*dp*q )
   + on(1,2,3,4, du1=0, du2=0);
 
-real Rec = min(Re, 100.0);
+real Rec = 0;
+real target = min(Re, 100.0);
+real[int] Uconv = u1[];      // last converged state
 while (true) {
-    nu = 1.0 / Rec;
-    for (int it = 0; it < maxIt; it++) {
+    nu = 1.0 / target;
+    int it;
+    for (it = 0; it < maxIt; it++) {
         matrix Jn = vJac(Xh, Xh, solver=UMFPACK);
         real[int] R = vRes(0, Xh);
         real[int] d = Jn^-1 * R;
         u1[] = u1[] - d;
-        real dn = d.linfty;
-        cout << "  Re=" << Rec << "  it=" << it
-             << "  |d|inf=" << dn << "  |R|inf=" << R.linfty << endl;
-        if (dn < nwtol) break;
+        cout << "  Re=" << target << "  it=" << it
+             << "  |d|inf=" << d.linfty << "  |R|inf=" << R.linfty << endl;
+        if (d.linfty < nwtol) break;
     }
-    if (Rec == Re) break;
-    Rec = min(2.0*Rec, Re);
+    if (it < maxIt) {        // converged: advance the continuation
+        Rec = target;
+        if (Rec == Re) break;
+        Uconv = u1[];
+        target = min(2.0*Rec, Re);
+    } else {                 // failed: halve the step, restore, retry
+        assert(target - Rec > 1.0e-8);
+        target = Rec + 0.5*(target - Rec);
+        u1[] = Uconv;
+        cout << "  Newton failed; halving continuation step to Re=" << target << endl;
+    }
 }
 nu = 1.0 / Re;
 
