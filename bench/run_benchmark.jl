@@ -4,8 +4,10 @@
 
 using ArgParse
 using BenchmarkTools
+using GenericLinearAlgebra  # generic-eltype eigvals/schur for --oracle-eltype
 using JSON
 using LinearAlgebra
+using MultiFloats         # Float64xN oracle element types
 using Random
 using Dates
 using Printf
@@ -129,6 +131,17 @@ const ELTYPE_MAP = Dict(
     "Complex{BigFloat}" => Complex{BigFloat},
 )
 
+# Oracle-only element types: everything the solver supports plus generic-
+# precision MultiFloats types (eigvals via GenericLinearAlgebra).
+const ORACLE_ELTYPE_MAP = merge(ELTYPE_MAP, Dict(
+    "Float64x2" => Float64x2,
+    "Float64x3" => Float64x3,
+    "Float64x4" => Float64x4,
+    "Complex{Float64x2}" => Complex{Float64x2},
+    "Complex{Float64x3}" => Complex{Float64x3},
+    "Complex{Float64x4}" => Complex{Float64x4},
+))
+
 """
     merge_saved_args!(args, defaults, path)
 
@@ -237,10 +250,17 @@ function parse_cli()
             arg_type = Float64
             default = NaN
         "--oracle"
-            help = "Oracle eigensolver: dense (full spectrum via eigen/QZ), arpack (--nev largest-real-part eigenvalues via eigs — a partial oracle; with --search-shift, eigenvalues nearest that shift), auto → arpack for sparse inputs, dense otherwise"
+            help = "Oracle eigensolver: dense (full spectrum via eigen/QZ, or generic-precision eigvals for non-BlasFloat eltypes), arpack (--nev eigenvalues via eigs — BlasFloat only), arnoldi (--nev eigenvalues via pure-Julia partialschur — any eltype, incl. MultiFloats; with --search-shift, eigenvalues nearest that shift), auto → arpack/arnoldi for sparse inputs (arnoldi for non-BlasFloat oracle eltype), dense otherwise"
             arg_type = String
             default = "auto"
-            range_tester = x -> x in ("dense", "arpack", "auto")
+            range_tester = x -> x in ("dense", "arpack", "arnoldi", "auto")
+        "--oracle-eltype"
+            help = "Oracle element type (default: promote --eltype to at least Float64): $(join(sort(collect(keys(ORACLE_ELTYPE_MAP))), ", ")). Non-BlasFloat types (BigFloat, Float64xN) use the generic-precision eigvals path; generalized pencils additionally need a nonsingular B (no generic QZ)"
+            arg_type = String
+            default = nothing
+        "--oracle-only"
+            help = "Benchmark only the oracle on each matrix (no search phase, no methods)"
+            action = :store_true
         "--nev"
             help = "Number of eigenvalues requested from the arpack oracle"
             arg_type = Int
@@ -306,6 +326,9 @@ end
 # preserved — Float64 prints shortest-round-trip).
 _sanitize(x) = x
 _sanitize(x::AbstractFloat) = isfinite(x) ? x : nothing
+# MultiFloats/BigFloat have no native JSON number form — serialize the
+# full-precision decimal string so the extra digits survive the file.
+_sanitize(x::Union{MultiFloat,BigFloat}) = string(x)
 _sanitize(x::Complex) = Dict("re" => _sanitize(real(x)), "im" => _sanitize(imag(x)))
 _sanitize(x::AbstractVector) = [_sanitize(v) for v in x]
 _sanitize(x::AbstractMatrix) = [_sanitize(collect(r)) for r in eachrow(x)]
@@ -499,7 +522,8 @@ function main()
         # iteration, a real cost the oracle comparison should include.
         # CLI args are unpacked into concrete values here so build_starts
         # is type-stable in the timed path.
-        strategy = args["start-strategy"]
+        oracle_only = args["oracle-only"]
+        strategy = oracle_only ? "none" : args["start-strategy"]
         # (saved args round-trip NaN → null through JSON, so treat null as
         # unset too)
         shift_arg = (args["shift"] === nothing || isnan(args["shift"])) ?
@@ -510,37 +534,51 @@ function main()
         ssearch_arg = args["search-shift"] === nothing ? nothing :
                       [T(parse(ComplexF64, strip(x)))
                        for x in split(args["search-shift"], ',')]
-        starts, search_info = build_starts(strategy, A, Bm;
-                              seed = args["seed"],
-                              nstarts = args["nstarts"],
-                              power_iters = args["power-iters"],
-                              shift = shift_arg,
-                              search_shift = ssearch_arg)
-        starts_trial = run(@benchmarkable(
-            build_starts($strategy, $A, $Bm;
-                         seed = $(args["seed"]),
-                         nstarts = $(args["nstarts"]),
-                         power_iters = $(args["power-iters"]),
-                         shift = $shift_arg,
-                         search_shift = $ssearch_arg)
-        ); samples = args["samples"], evals = 1)
-        starts_flops = measure_flops() do
-            build_starts(strategy, A, Bm; seed = args["seed"],
-                         nstarts = args["nstarts"],
-                         power_iters = args["power-iters"],
-                         shift = shift_arg,
-                         search_shift = ssearch_arg)
+        if oracle_only
+            starts, search_info = Tuple{Vector{T},T}[], Dict{String,Any}()
+            starts_trial, starts_flops = nothing, nothing
+        else
+            starts, search_info = build_starts(strategy, A, Bm;
+                                  seed = args["seed"],
+                                  nstarts = args["nstarts"],
+                                  power_iters = args["power-iters"],
+                                  shift = shift_arg,
+                                  search_shift = ssearch_arg)
+            starts_trial = run(@benchmarkable(
+                build_starts($strategy, $A, $Bm;
+                             seed = $(args["seed"]),
+                             nstarts = $(args["nstarts"]),
+                             power_iters = $(args["power-iters"]),
+                             shift = $shift_arg,
+                             search_shift = $ssearch_arg)
+            ); samples = args["samples"], evals = 1)
+            starts_flops = measure_flops() do
+                build_starts(strategy, A, Bm; seed = args["seed"],
+                             nstarts = args["nstarts"],
+                             power_iters = args["power-iters"],
+                             shift = shift_arg,
+                             search_shift = ssearch_arg)
+            end
         end
         match_tol = (args["match-tol"] === nothing || isnan(args["match-tol"])) ?
             max(10 * args["tol"], 10 * sqrt(eps(real(T)))) * normA :
             args["match-tol"]
 
-        Toracle = oracle_eltype(T)
+        Toracle = args["oracle-eltype"] === nothing ? oracle_eltype(T) :
+                  begin
+                      haskey(ORACLE_ELTYPE_MAP, args["oracle-eltype"]) ||
+                          error("unknown --oracle-eltype " *
+                                "'$(args["oracle-eltype"])' " *
+                                "(choices: $(join(sort(collect(keys(ORACLE_ELTYPE_MAP))), ", ")))")
+                      ORACLE_ELTYPE_MAP[args["oracle-eltype"]]
+                  end
         oracle_mode = args["oracle"]
         oracle_mode == "auto" &&
-            (oracle_mode = A isa SparseMatrixCSC ? "arpack" : "dense")
-        # --search-shift doubles as the ARPACK shift-invert target σ
-        # (a list uses its first entry — the oracle is a single eigs run)
+            (oracle_mode = A isa SparseMatrixCSC ?
+                (real(Toracle) <: LinearAlgebra.BlasFloat ? "arpack" :
+                 "arnoldi") : "dense")
+        # --search-shift doubles as the iterative oracle's shift-invert
+        # target σ (a list uses its first entry — the oracle is one run)
         oracle_sigma = ssearch_arg === nothing ? nothing :
                        Toracle(first(ssearch_arg))
 
@@ -560,18 +598,38 @@ function main()
             oracle_call = () -> run_oracle_eigs(Aoracle, Boracle;
                                                 nev = args["nev"],
                                                 sigma = oracle_sigma)
+        elseif oracle_mode == "arnoldi"
+            Aoracle = A isa SparseMatrixCSC ? SparseMatrixCSC{Toracle,Int}(A) :
+                      Matrix{Toracle}(A)
+            Boracle = B === nothing ? nothing :
+                      (B isa SparseMatrixCSC ? SparseMatrixCSC{Toracle,Int}(B) :
+                       Matrix{Toracle}(B))
+            Boracle !== nothing && oracle_sigma === nothing && error(
+                "--oracle arnoldi: generalized pencils need a shift-invert " *
+                "target; supply --search-shift")
+            oracle_call = () -> run_oracle_arnoldi(Aoracle, Boracle;
+                                                   nev = args["nev"],
+                                                   sigma = oracle_sigma)
         else
             Aoracle = Matrix{Toracle}(A)
             Boracle = B === nothing ? nothing : Matrix{Toracle}(B)
-            oracle_call = () -> (B === nothing ? run_oracle(Aoracle) :
-                                                 run_oracle(Aoracle, Boracle))
+            # LAPACK eigen/QZ exists only for BlasFloat; generic eltypes
+            # (BigFloat, Float64xN) take the GenericLinearAlgebra eigvals
+            # path, which is eigenvalue-only
+            oracle_call = if real(Toracle) <: LinearAlgebra.BlasFloat
+                () -> (B === nothing ? run_oracle(Aoracle) :
+                                       run_oracle(Aoracle, Boracle))
+            else
+                () -> run_oracle_hp(Aoracle, Boracle)
+            end
         end
 
         # Deterministic run (doubles as JIT warmup) + BenchmarkTools trial,
         # same as the method runs — a fair O(n³) vs O(n³) comparison.
         F, nconv, niter, nmult = try
             out_o = oracle_call()
-            oracle_mode == "arpack" ? out_o : (out_o, nothing, nothing, nothing)
+            oracle_mode in ("arpack", "arnoldi") ? out_o :
+                (out_o, nothing, nothing, nothing)
         catch err
             if err isa LinearAlgebra.SingularException
                 error("$oracle_mode oracle: factorization failed " *
@@ -586,13 +644,14 @@ function main()
         oracle_dict = Dict{String,Any}(
             "method" => oracle_mode,
             "eltype" => string(Toracle),
-            "nev" => oracle_mode == "arpack" ? args["nev"] : nothing,
+            "nev" => oracle_mode in ("arpack", "arnoldi") ?
+                     args["nev"] : nothing,
             "n_converged" => nconv,
             "niter" => niter,
             "nmult" => nmult,
             # LR = largest real part (plain mode); LM = eigenvalues nearest
             # sigma via the custom shift-invert operator
-            "which" => oracle_mode == "arpack" ?
+            "which" => oracle_mode in ("arpack", "arnoldi") ?
                        (oracle_sigma === nothing ? "LR" : "LM") : nothing,
             "sigma" => oracle_sigma,
             "flops" => oracle_flops,
@@ -623,14 +682,15 @@ function main()
             "n_starts" => length(starts),
             "search" => merge!(Dict{String,Any}("strategy" => strategy),
                              search_info),
-            "starts_benchmark" => _sanitize(Dict{String,Any}(
-                "runtime_ns_median" => median(starts_trial.times),
-                "runtime_ns_min" => minimum(starts_trial.times),
-                "runtime_ns_samples" => starts_trial.times,
-                "bytes_allocated" => starts_trial.memory,
-                "alloc_count" => starts_trial.allocs,
-                "flops" => starts_flops,
-            )),
+            "starts_benchmark" => starts_trial === nothing ? nothing :
+                _sanitize(Dict{String,Any}(
+                    "runtime_ns_median" => median(starts_trial.times),
+                    "runtime_ns_min" => minimum(starts_trial.times),
+                    "runtime_ns_samples" => starts_trial.times,
+                    "bytes_allocated" => starts_trial.memory,
+                    "alloc_count" => starts_trial.allocs,
+                    "flops" => starts_flops,
+                )),
             "oracle" => oracle_dict,
             "runs" => Any[],
             "coverage" => Dict{String,Any}(),
@@ -644,10 +704,12 @@ function main()
 
         results = Tuple{String,RQIResult}[]
         total_times = Dict{String,Float64}()
-        σ0_init = T(starts[1][2])
-        v0_init = normalize(Vector{T}(starts[1][1]))
+        if !oracle_only
+            σ0_init = T(starts[1][2])
+            v0_init = normalize(Vector{T}(starts[1][1]))
+        end
 
-        for m in methods
+        for m in (oracle_only ? () : methods)
             label = method_label(m)
             print(stderr, "   $label ... ")
             inner_max = args["inner-maxiter"] <= 0 ? n : args["inner-maxiter"]
@@ -746,8 +808,8 @@ function main()
             write_results(args["out"], out)
         end
 
-        entry["coverage"] = _sanitize(coverage_summary(results, F, match_tol,
-                                                     total_times))
+        entry["coverage"] = oracle_only ? Dict{String,Any}() :
+            _sanitize(coverage_summary(results, F, match_tol, total_times))
         write_results(args["out"], out)
     end
     println(stderr, "wrote $(args["out"])")

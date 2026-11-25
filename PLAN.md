@@ -54,6 +54,20 @@ own `bmat="G"` mode is unreliable for singular `B`, so we never use
 it). The arpack oracle returns a partial spectrum of `--nev`
 eigenvalues, which is also the coverage denominator.
 
+`--oracle arnoldi` is the generic-precision counterpart: ArnoldiMethod.jl
+`partialschur` (pure-Julia Krylov–Schur) on the same `ShiftInvertOp`,
+usable with any element type (ARPACK is a compiled Fortran library and
+BlasFloat-only). Its `A - σB` factorization is a dense generic `lu`
+(sparse LU is BlasFloat-only) paid once. The oracle element type is set
+by `--oracle-eltype` (default: `--eltype` promoted to at least Float64);
+non-BlasFloat types (BigFloat, MultiFloats `Float64x2..x4`) take
+`arnoldi` in `auto` mode for sparse inputs, or a generic `eigvals`-based
+dense oracle (pencils then need nonsingular `B` — no generic QZ).
+Generic-precision eigenvalues serialize as full-precision decimal
+strings so the extra digits survive JSON. `--oracle-only` benchmarks
+just the oracle per matrix (no search phase, no methods; `runs` and
+`coverage` are empty, `starts_benchmark` is null).
+
 `src/RQIBench.jl` is a plain module included by the driver (no package
 structure needed). The driver is run as
 `julia --project=. bench/run_benchmark.jl --matrices matrices/ --out results/bench.json`.
@@ -127,7 +141,7 @@ Near-singular `(A - σB)` is the norm in RQI. If `lu` reports a zero pivot
   `init_state(method, A, σ0)` / `solve_step!(state, A, σ, v)` /
   `on_shift!(state, σ_new)`. So the loop/timing/counting code is written
   once.
-- `run_oracle(A)` -> `(eigenvalues, eigenvectors)`; `run_oracle_eigs(A[,B]; nev, sigma)` -> `Eigen` + ARPACK counters (`ShiftInvertOp` lazy matrix for the shift-invert mode).
+- `run_oracle(A)` -> `(eigenvalues, eigenvectors)`; `run_oracle_eigs(A[,B]; nev, sigma)` -> `Eigen` + ARPACK counters (`ShiftInvertOp` lazy matrix for the shift-invert mode); `run_oracle_arnoldi` is the ArnoldiMethod/`partialschur` generic-eltype analog; `run_oracle_hp` is the dense generic-eltype path (`eigvals`, or `eigvals(B\A)` for nonsingular `B`).
 - `BenchmarkResult` struct + `to_dict` -> JSON.
 - `load_matrix(path)`: delimited dense text via `readdlm`, or sparse
   `SparseMatrixCSC` from Matrix Market `.mtx`; the format is picked by

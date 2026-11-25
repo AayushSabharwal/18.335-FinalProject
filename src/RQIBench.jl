@@ -13,6 +13,7 @@ eigenvalue it converges to. Generic over the element type `T` of `A`
 module RQIBench
 
 using Arpack
+using ArnoldiMethod
 using EnumX
 using LinearAlgebra
 using LinearSolve
@@ -25,8 +26,8 @@ import SuiteSparse
 
 export RQIMethod, FixedShiftLU, RefactorLU, GMRESInputPrec, GMRESPrevPrec,
        RQICounters, RQIResult, RQIFail, run_rqi, run_rqi!, init_state,
-       reset_state!, run_oracle, run_oracle_eigs, load_matrix, load_problem,
-       method_tag,
+       reset_state!, run_oracle, run_oracle_eigs, run_oracle_hp,
+       run_oracle_arnoldi, load_matrix, load_problem, method_tag,
        nearest_oracle, eigenvector_error, gershgorin_bounds, build_starts,
        sanity_check
 
@@ -541,6 +542,29 @@ run_oracle(A::AbstractMatrix) = eigen(Matrix(A))
 run_oracle(A::AbstractMatrix, B::AbstractMatrix) = eigen(Matrix(A), Matrix(B))
 
 """
+    run_oracle_hp(A[, B]) -> (; values, vectors = nothing)
+
+High-precision oracle for generic element types (BigFloat, MultiFloats
+`Float64xN`, ...). Eigenvalue-only: `eigen!`/`eigvals(A,B)` have no
+generic-precision implementation (QZ is LAPACK-only), so a pencil is
+reduced to the standard problem `B\\A`, which requires `B` nonsingular.
+Returns a NamedTuple stand-in with `vectors = nothing` — downstream
+consumers only need `.values`. Requires GenericLinearAlgebra.jl loaded.
+"""
+function run_oracle_hp(A::AbstractMatrix, B::Union{AbstractMatrix,Nothing}=nothing)
+    λ = if B === nothing
+        eigvals(A)
+    else
+        F = lu(B; check = false)
+        issuccess(F) || error("run_oracle_hp: singular B — generic-precision " *
+            "generalized eigendecomposition (QZ) is unavailable; use " *
+            "--oracle arpack with --search-shift or a BlasFloat oracle eltype")
+        eigvals(Matrix(B) \ Matrix(A))
+    end
+    return (values = λ, vectors = nothing)
+end
+
+"""
     ShiftInvertOp(F, B, n)
 
 Lazy `AbstractMatrix` for the shift-invert operator `C = (A - σB)⁻¹B`,
@@ -623,6 +647,73 @@ function run_oracle_eigs(A::AbstractMatrix, B::Union{AbstractMatrix,Nothing}=not
         @warn "eigs converged only $nconv of $nev requested eigenvalues"
     nconv == 0 && error("eigs converged no eigenvalues")
     return Eigen(collect(λ[1:nconv]), X[:, 1:nconv]), nconv, niter, nmult
+end
+
+"""
+    run_oracle_arnoldi(A[, B]; nev, sigma, v0) -> ((; values, vectors), nconv, niter, nmult)
+
+Generic-precision partial oracle via ArnoldiMethod.jl `partialschur`
+(pure-Julia Krylov–Schur): the MultiFloats/BigFloat counterpart of
+`run_oracle_eigs`, since ARPACK is a compiled Fortran library and
+BlasFloat-only. Same contract:
+
+* `sigma === nothing` (standard problems only): the `nev` eigenvalues of
+  `A` with largest real part (`which = :LR`).
+* `sigma` given: the `nev` eigenvalues nearest `sigma` as the largest-|μ|
+  pairs of `C = (A - σB)⁻¹B` (see [`ShiftInvertOp`](@ref)). The `A - σB`
+  factorization is a *dense* generic `lu` — sparse LU is BlasFloat-only —
+  but it is paid once; singular `B` is tolerated exactly as in
+  `run_oracle_eigs` (ker B ⊂ ker C deflates). Mandatory for pencils.
+
+Eigenvalue-only: `partialeigen` (Schur → eigenvectors) has no
+generic-eltype implementation, so the returned stand-in carries
+`vectors = nothing`. `niter`/`nmult` both report `History.mvproducts`
+(ArnoldiMethod tracks matvecs, not aupd iterations). `nev` is clamped to
+`n - 2` to match the ARPACK path's bound.
+"""
+function run_oracle_arnoldi(A::AbstractMatrix,
+                            B::Union{AbstractMatrix,Nothing}=nothing;
+                            nev::Integer=20, sigma=nothing,
+                            v0::Union{AbstractVector,Nothing}=nothing,
+                            tol::Real=0)
+    n = size(A, 1)
+    nev = min(nev, n - 2)
+    nev >= 1 || error("run_oracle_arnoldi needs n >= 3, got n=$n")
+    To = eltype(A)
+    Tσ = sigma === nothing ? To : promote_type(To, typeof(sigma))
+    if sigma === nothing
+        B === nothing || error(
+            "run_oracle_arnoldi: generalized pencils require sigma " *
+            "(shift-invert mode; this also handles singular B)")
+        op = A
+        which = :LR
+    else
+        # lu(A - σB) is dense: sparse factorization is BlasFloat-only
+        F = lu(Matrix(Tσ.(A) - Tσ(sigma) * (B === nothing ? I : B)))
+        op = ShiftInvertOp{Tσ,typeof(F),typeof(B === nothing ? I : B)}(
+            F, B === nothing ? I : B, n, zeros(Tσ, n))
+        which = :LM
+    end
+    kw = (; nev, which, v1 = v0 === nothing ? ones(Tσ, n) : v0)
+    tol != 0 && (kw = merge(kw, (; tol)))
+    ps, hist = partialschur(op; kw...)
+    nconv = min(hist.nconverged, length(ps.eigenvalues))
+    μ = collect(ps.eigenvalues[1:nconv])
+    if sigma !== nothing
+        # |μ| ≲ eps·|μ|max ⇔ pencil eigenvalues at ∞ (kernel of B)
+        isempty(μ) && error("partialschur converged no eigenvalues")
+        keep = abs.(μ) .> eps(real(Tσ)) * maximum(abs, μ)
+        λ = Tσ(sigma) .+ inv.(μ[keep])
+        nconv = length(λ)
+    else
+        λ = μ
+        nconv == 0 && error("partialschur converged no eigenvalues")
+    end
+    hist.nconverged < nev &&
+        @warn "partialschur converged only $(hist.nconverged) of $nev " *
+              "requested eigenvalues"
+    return (values = λ, vectors = nothing), nconv, hist.mvproducts,
+           hist.mvproducts
 end
 
 """
@@ -734,7 +825,9 @@ Non-finite oracle eigenvalues (singular `B`) never match."""
 function nearest_oracle(F, λ)
     i = argmin(i -> (d = abs(F.values[i] - λ); isfinite(d) ? d : Inf),
                eachindex(F.values))
-    return i, F.values[i], F.vectors[:, i]
+    # high-precision oracles (run_oracle_hp) carry no eigenvectors
+    u = F.vectors === nothing ? nothing : F.vectors[:, i]
+    return i, F.values[i], u
 end
 
 """

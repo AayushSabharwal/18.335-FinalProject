@@ -183,11 +183,12 @@
       ]
     },
     "scalar": {
-      "description": "A value of the matrix element type: number for real T, {re,im} for complex T; null if non-finite.",
+      "description": "A value of the matrix element type: number for real T, {re,im} for complex T; null if non-finite. Element types without a native JSON number (MultiFloats, BigFloat) serialize as full-precision decimal strings.",
       "anyOf": [
         {
           "type": [
             "number",
+            "string",
             "null"
           ]
         },
@@ -201,12 +202,14 @@
             "re": {
               "type": [
                 "number",
+                "string",
                 "null"
               ]
             },
             "im": {
               "type": [
                 "number",
+                "string",
                 "null"
               ]
             }
@@ -336,7 +339,8 @@
         },
         "n_starts": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0,
+          "description": "Number of start points (0 under --oracle-only)"
         },
         "search": {
           "type": "object",
@@ -349,7 +353,8 @@
               "enum": [
                 "rq",
                 "grid",
-                "largest"
+                "largest",
+                "none"
               ]
             },
             "search_shift": {
@@ -384,7 +389,15 @@
           "additionalProperties": false
         },
         "starts_benchmark": {
-          "$ref": "#/$defs/trial_stats"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/trial_stats"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Timing of the search-phase build_starts; null under --oracle-only"
         },
         "oracle": {
           "$ref": "#/$defs/oracle_entry"
@@ -473,9 +486,10 @@
           "type": "string",
           "enum": [
             "dense",
-            "arpack"
+            "arpack",
+            "arnoldi"
           ],
-          "description": "Oracle eigensolver: dense = full spectrum via eigen/QZ; arpack = partial (nev largest-real-part) via eigs"
+          "description": "Oracle eigensolver: dense = full spectrum via eigen/QZ (generic-precision eigvals for non-BlasFloat eltype); arpack = partial (nev) via eigs, BlasFloat only; arnoldi = partial (nev) via ArnoldiMethod partialschur, any eltype"
         },
         "nev": {
           "type": [
@@ -483,7 +497,7 @@
             "null"
           ],
           "minimum": 1,
-          "description": "Eigenvalues requested from the arpack oracle (null for dense)"
+          "description": "Eigenvalues requested from the arpack/arnoldi oracle (null for dense)"
         },
         "n_converged": {
           "type": [
@@ -491,7 +505,7 @@
             "null"
           ],
           "minimum": 0,
-          "description": "Eigenvalues actually converged by eigs (null for dense)"
+          "description": "Eigenvalues actually converged by eigs/partialschur (null for dense)"
         },
         "niter": {
           "type": [
@@ -510,7 +524,7 @@
             "string",
             "null"
           ],
-          "description": "eigs selection criterion (LR = largest real part)"
+          "description": "Selection criterion (LR = largest real part, LM = nearest sigma via shift-invert)"
         },
         "sigma": {
           "$ref": "#/$defs/scalar"
